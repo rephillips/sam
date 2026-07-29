@@ -7,7 +7,7 @@
  *
  * Implements exactly the surface popup.js touches:
  *   chrome.storage.local   .get/.set          (backed by localStorage)
- *   chrome.storage.session .get/.set/.remove  (backed by sessionStorage)
+ *   chrome.storage.session .get/.set/.remove  (backed by an in-memory Map)
  *   chrome.runtime.sendMessage — hasToken | saveToken | clearToken |
  *                                acsIpAllowList | getLog
  *
@@ -63,6 +63,21 @@
   }
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  /* ── in-memory session store ─────────────────────────────────────────── */
+  // Deliberately NOT sessionStorage: browsers persist sessionStorage to disk
+  // for tab restore, so a token pasted into the harness would outlive the
+  // session on disk. The real extension keeps the token memory-only in
+  // chrome.storage.session; the mock must not be weaker than the real thing.
+  // Values here last until the page is reloaded — re-save after a refresh.
+  const memSession = (() => {
+    const m = new Map();
+    return {
+      getItem: (k) => (m.has(k) ? m.get(k) : null),
+      setItem: (k, v) => m.set(k, String(v)),
+      removeItem: (k) => m.delete(k),
+    };
+  })();
 
   /* ── storage ─────────────────────────────────────────────────────────── */
   function makeStore(backing) {
@@ -127,14 +142,24 @@
   async function route(msg) {
     switch (msg.type) {
       case "hasToken":
-        return { ok: true, hasToken: !!sessionStorage.getItem("sam_token") };
+        return { ok: true, hasToken: !!memSession.getItem("sam_token") };
 
       case "saveToken":
-        sessionStorage.setItem("sam_token", msg.token);
+        // A real Splunk Cloud token is a three-segment JWT. Refuse the shape
+        // outright: the harness never contacts ACS, so a production credential
+        // here is pure risk with zero function.
+        if (/^eyJ[\w-]+\.[\w-]+\.[\w-]+$/.test(String(msg.token || ""))) {
+          return {
+            ok: false,
+            error:
+              'That looks like a real JWT. The dev harness never contacts ACS — use any fake string (e.g. "test") instead.',
+          };
+        }
+        memSession.setItem("sam_token", msg.token);
         return { ok: true };
 
       case "clearToken":
-        sessionStorage.removeItem("sam_token");
+        memSession.removeItem("sam_token");
         return { ok: true };
 
       case "getLog":
@@ -147,7 +172,7 @@
         await sleep(LATENCY);
         const ms = Date.now() - started;
 
-        if (!sessionStorage.getItem("sam_token")) {
+        if (!memSession.getItem("sam_token")) {
           record(p.method, url, 0, ms);
           return { ok: false, error: "No API token in session. Enter one and save.", ms };
         }
@@ -196,7 +221,7 @@
   window.chrome = {
     storage: {
       local: makeStore(window.localStorage),
-      session: makeStore(window.sessionStorage),
+      session: makeStore(memSession),
     },
     runtime: {
       sendMessage: (msg) => route(msg),

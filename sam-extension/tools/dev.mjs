@@ -89,8 +89,12 @@ const server = http.createServer((req, res) => {
   }
 
   const filePath = path.join(ROOT, pathname);
-  // Keep the server inside the project directory.
-  if (!filePath.startsWith(ROOT)) return send(res, 403, "Forbidden");
+  // Keep the server inside the project directory. Compare against ROOT plus a
+  // separator: a bare prefix test also matches *sibling* paths that merely
+  // start with the same name (../sam-extension-src.zip → " SAM/sam-extension-src.zip").
+  if (filePath !== ROOT && !filePath.startsWith(ROOT + path.sep)) {
+    return send(res, 403, "Forbidden");
+  }
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     return send(res, 404, `Not found: ${pathname}`);
   }
@@ -113,7 +117,9 @@ const server = http.createServer((req, res) => {
   send(res, 200, fs.readFileSync(filePath), MIME[ext] || "application/octet-stream");
 });
 
-server.listen(PORT, () => {
+// Loopback only — this harness serves project files and has no auth, so it
+// must never be reachable from the network.
+server.listen(PORT, "127.0.0.1", () => {
   console.log(`\n  SAM dev harness → http://localhost:${PORT}\n`);
   console.log(`  popup       http://localhost:${PORT}/popup.html`);
   console.log(`  style guide http://localhost:${PORT}/design/styleguide.html`);

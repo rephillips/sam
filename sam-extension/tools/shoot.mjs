@@ -52,7 +52,7 @@ async function configure(page) {
   await page.fill("#stack", STACK);
   await page.fill("#token", TOKEN);
   await page.click("#saveConn");
-  await page.waitForSelector("#listWrap:not(.hidden)", { timeout: 5000 }).catch(() => {});
+  await page.waitForSelector("#ipTabsWrap:not(.hidden)", { timeout: 5000 }).catch(() => {});
   await wait(250);
 }
 

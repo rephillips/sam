@@ -493,7 +493,11 @@ async function init() {
       return;
     }
     if (token) {
-      await send({ type: "saveToken", token });
+      const saved = await send({ type: "saveToken", token });
+      if (saved && saved.ok === false) {
+        setStatus($("connStatus"), saved.error || "Could not save the token.", "err");
+        return;
+      }
       $("token").value = "";
       $("token").placeholder = "•••••••• token in session";
       toggleTokenHelp(false);
