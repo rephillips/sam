@@ -33,9 +33,15 @@
           Environment
           <select id="env">
             <option value="govcloud_il2">GovCloud IL2 (FedRAMP Moderate)</option>
+            <option value="govcloud_il2_staging">GovCloud IL2 — Staging</option>
             <option value="commercial">Commercial</option>
+            <option value="commercial_staging">Commercial — Staging</option>
           </select>
         </label>
+        <p class="field__hint">
+          Staging environments use the <span class="code-chip">staging.admin.*</span>
+          ACS host for staging stacks. Dev stacks are not supported by ACS at all.
+        </p>
 
         <label class="field">
           Experience

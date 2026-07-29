@@ -1,6 +1,10 @@
 // acs.js — shared ACS routing, validation, and metadata.
 // No secrets live here. Token handling is confined to background.js.
 
+// ACS serves production and STAGING stacks — staging uses the same API shape
+// on a staging.admin.* host (the CLI equivalent is --server=https://staging...).
+// Dev stacks are NOT supported by ACS at all; there is no environment entry
+// for them on purpose.
 export const ENVIRONMENTS = {
   govcloud_il2: {
     id: "govcloud_il2",
@@ -8,6 +12,15 @@ export const ENVIRONMENTS = {
     host: "https://admin.splunkcloudgc.com",
     badge: "GOVCLOUD IL2",
     restricted: true,
+    staging: false,
+  },
+  govcloud_il2_staging: {
+    id: "govcloud_il2_staging",
+    label: "GovCloud IL2 — Staging",
+    host: "https://staging.admin.splunkcloudgc.com",
+    badge: "GOVCLOUD IL2 · STAGING",
+    restricted: true,
+    staging: true,
   },
   commercial: {
     id: "commercial",
@@ -15,6 +28,15 @@ export const ENVIRONMENTS = {
     host: "https://admin.splunk.com",
     badge: "COMMERCIAL",
     restricted: false,
+    staging: false,
+  },
+  commercial_staging: {
+    id: "commercial_staging",
+    label: "Commercial — Staging",
+    host: "https://staging.admin.splunk.com",
+    badge: "COMMERCIAL · STAGING",
+    restricted: false,
+    staging: true,
   },
 };
 

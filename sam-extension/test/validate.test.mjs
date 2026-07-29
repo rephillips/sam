@@ -127,6 +127,25 @@ ok(
     "/access/hec/ipallowlists-v6"
   )
 );
+// ACS serves staging stacks from staging.admin.* hosts with an otherwise
+// identical signature. (Dev stacks are not supported by ACS at all.)
+ok(
+  "govcloud staging url",
+  buildIpAllowListUrl({ envId: "govcloud_il2_staging", stack: "csms-2io6tw-47150", feature: "s2s", ipVersion: "v4" }) ===
+    "https://staging.admin.splunkcloudgc.com/csms-2io6tw-47150/adminconfig/v2/access/s2s/ipallowlists"
+);
+ok(
+  "commercial staging url",
+  buildIpAllowListUrl({ envId: "commercial_staging", stack: "acme", feature: "search-ui", ipVersion: "v4" }) ===
+    "https://staging.admin.splunk.com/acme/adminconfig/v2/access/search-ui/ipallowlists"
+);
+ok(
+  "staging path identical to production apart from host",
+  buildIpAllowListUrl({ envId: "commercial_staging", stack: "acme", feature: "hec", ipVersion: "v6" }) ===
+    buildIpAllowListUrl({ envId: "commercial", stack: "acme", feature: "hec", ipVersion: "v6" }).replace(
+      "https://admin.", "https://staging.admin."
+    )
+);
 ok("stack with braces rejected", (() => {
   try { buildIpAllowListUrl({ envId: "commercial", stack: "{stack}", feature: "s2s", ipVersion: "v4" }); return false; }
   catch (e) { return e.message.includes("looks invalid"); }

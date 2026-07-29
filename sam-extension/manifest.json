@@ -6,7 +6,9 @@
   "permissions": ["storage", "alarms", "idle"],
   "host_permissions": [
     "https://admin.splunk.com/*",
-    "https://admin.splunkcloudgc.com/*"
+    "https://staging.admin.splunk.com/*",
+    "https://admin.splunkcloudgc.com/*",
+    "https://staging.admin.splunkcloudgc.com/*"
   ],
   "background": {
     "service_worker": "background.js",

@@ -22,10 +22,19 @@ IPv6 uses the `ipallowlists-v6` suffix. Feature types are `search-api`,
 The Environment selector picks the ACS host:
 
 - **GovCloud IL2 (FedRAMP Moderate)** → `https://admin.splunkcloudgc.com`
+- **GovCloud IL2 — Staging** → `https://staging.admin.splunkcloudgc.com`
 - **Commercial** → `https://admin.splunk.com`
+- **Commercial — Staging** → `https://staging.admin.splunk.com`
 
 GovCloud is the default and is visually distinguished (purple badge plus a
-banner) so it is never ambiguous which boundary you are operating in.
+banner) so it is never ambiguous which boundary you are operating in. Staging
+environments carry a `· STAGING` badge suffix.
+
+**Staging vs dev stacks:** ACS works with staging stacks — same API signature,
+staging host (the ACS CLI equivalent is `--server=https://staging.admin.splunk.com`).
+ACS does **not** work with dev stacks, which is why no dev environment exists
+in the selector. The "Copy as curl" output routes to the right host
+automatically because the host is baked into the URL.
 
 Experience (Classic by default, or Victoria) is stored on the connection
 profile. IP allow

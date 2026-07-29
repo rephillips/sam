@@ -122,7 +122,9 @@
 
   const BASES = {
     commercial: "https://admin.splunk.com",
+    commercial_staging: "https://staging.admin.splunk.com",
     govcloud_il2: "https://admin.splunkcloudgc.com",
+    govcloud_il2_staging: "https://staging.admin.splunkcloudgc.com",
   };
 
   const PATHS = {
