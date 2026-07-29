@@ -38,10 +38,6 @@
             <option value="commercial_staging">Commercial — Staging</option>
           </select>
         </label>
-        <p class="field__hint">
-          Staging environments use the <span class="code-chip">staging.admin.*</span>
-          ACS host for staging stacks. Dev stacks are not supported by ACS at all.
-        </p>
 
         <label class="field">
           Experience
@@ -50,10 +46,6 @@
             <option value="victoria">Victoria</option>
           </select>
         </label>
-        <p class="field__hint">
-          Experience is stored on the profile. IP allow list endpoints are identical on
-          both — it matters for apps and index operations later.
-        </p>
 
         <label class="field">
           Stack
@@ -65,13 +57,14 @@
           <label class="field__label" for="token">API Token (JWT)</label>
           <button
             id="tokenHelpToggle"
-            class="link link--xs"
+            class="link"
             type="button"
             aria-expanded="false"
             aria-controls="tokenHelp"
+            aria-label="How do I get a token"
             title="How to generate a bearer token on the Splunk Cloud search head"
           >
-            ? How do I get one
+            ⓘ
           </button>
         </div>
         <input

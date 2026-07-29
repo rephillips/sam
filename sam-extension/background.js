@@ -2,7 +2,7 @@
 // The API token lives here and in chrome.storage.session ONLY. It is never
 // returned to the popup and never written to disk-backed storage.
 
-import { buildIpAllowListUrl, ENVIRONMENTS } from "./acs.js";
+import { buildIpAllowListUrl, buildCurl, ENVIRONMENTS } from "./acs.js";
 
 const TOKEN_KEY = "sam_token";
 const LOG_KEY = "sam_request_log";
@@ -90,6 +90,10 @@ async function acsIpAllowList({ envId, stack, feature, ipVersion, method, subnet
     return { ok: false, status: 0, error: e.message };
   }
 
+  // The curl equivalent goes into the activity log. buildCurl substitutes a
+  // placeholder token, so the real bearer token never enters the log.
+  const curl = buildCurl({ envId, stack, feature, ipVersion, method, subnets });
+
   const init = {
     method,
     headers: {
@@ -109,7 +113,7 @@ async function acsIpAllowList({ envId, stack, feature, ipVersion, method, subnet
     response = await fetch(url, init);
     text = await response.text();
   } catch (e) {
-    const entry = { ts: started, method, url, status: 0, ms: Date.now() - started, error: e.message };
+    const entry = { ts: started, method, url, status: 0, ms: Date.now() - started, error: e.message, curl };
     await pushLog(entry);
     return {
       ok: false,
@@ -130,7 +134,7 @@ async function acsIpAllowList({ envId, stack, feature, ipVersion, method, subnet
     data = { raw: text };
   }
 
-  await pushLog({ ts: started, method, url, status: response.status, ms });
+  await pushLog({ ts: started, method, url, status: response.status, ms, curl });
 
   if (!response.ok) {
     return {

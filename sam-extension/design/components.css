@@ -549,6 +549,11 @@ textarea::placeholder { color: var(--text-faint); }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Expanded curl detail beneath a log row. */
+.log__detail {
+  padding: var(--space-2) 0 var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
 
 /* ==========================================================================
    Modal

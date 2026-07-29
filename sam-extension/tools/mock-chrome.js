@@ -115,9 +115,23 @@
 
   /* ── request log ─────────────────────────────────────────────────────── */
   const log = [];
-  function record(method, url, status, ms) {
-    log.unshift({ method, url, status, ms });
+  function record(method, url, status, ms, curl) {
+    log.unshift({ method, url, status, ms, curl });
     if (log.length > 25) log.pop();
+  }
+
+  // Mirrors acs.js buildCurl, including the placeholder token — the log never
+  // carries a real credential, in dev or in the shipped extension.
+  function curlFor(p) {
+    const url = urlFor(p);
+    const token = "eyJraWQiOiJzcGx1bmsuc2...";
+    if (p.method === "GET") return `curl ${url} --header 'Authorization: Bearer ${token}'`;
+    return [
+      `curl -X ${p.method} '${url}' \\`,
+      `--header 'Content-Type: application/json' \\`,
+      `--header 'Authorization: Bearer ${token}' \\`,
+      `--data '${JSON.stringify({ subnets: p.subnets || [] })}'`,
+    ].join("\n");
   }
 
   const BASES = {
@@ -175,15 +189,15 @@
         const ms = Date.now() - started;
 
         if (!memSession.getItem("sam_token")) {
-          record(p.method, url, 0, ms);
+          record(p.method, url, 0, ms, curlFor(p));
           return { ok: false, error: "No API token in session. Enter one and save.", ms };
         }
         if (!p.stack) {
-          record(p.method, url, 0, ms);
+          record(p.method, url, 0, ms, curlFor(p));
           return { ok: false, error: "No stack configured.", ms };
         }
         if (scenario === "error") {
-          record(p.method, url, 403, ms);
+          record(p.method, url, 403, ms, curlFor(p));
           return {
             ok: false,
             error: "ACS returned 403: token lacks the sc_admin role on this stack.",
@@ -197,19 +211,19 @@
 
         if (p.method === "GET") {
           const subnets = scenario === "empty" ? [] : f[key];
-          record("GET", url, 200, ms);
+          record("GET", url, 200, ms, curlFor(p));
           return { ok: true, data: { subnets: subnets.slice() }, ms };
         }
         if (p.method === "POST") {
           for (const s of msg.payload.subnets) if (!f[key].includes(s)) f[key].push(s);
           saveFixtures(f);
-          record("POST", url, 200, ms);
+          record("POST", url, 200, ms, curlFor(p));
           return { ok: true, data: { subnets: f[key].slice() }, ms };
         }
         if (p.method === "DELETE") {
           f[key] = f[key].filter((s) => !msg.payload.subnets.includes(s));
           saveFixtures(f);
-          record("DELETE", url, 200, ms);
+          record("DELETE", url, 200, ms, curlFor(p));
           return { ok: true, data: { subnets: f[key].slice() }, ms };
         }
         return { ok: false, error: `Unsupported method ${p.method}`, ms };

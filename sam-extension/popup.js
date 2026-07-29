@@ -99,7 +99,7 @@ function toggleTokenHelp(show) {
   const open = show === undefined ? help.classList.contains("hidden") : show;
   help.classList.toggle("hidden", !open);
   $("tokenHelpToggle").setAttribute("aria-expanded", String(open));
-  $("tokenHelpToggle").textContent = open ? "× Hide" : "? How do I get one";
+  $("tokenHelpToggle").textContent = open ? "×" : "ⓘ";
 }
 
 function collapseConn(collapse) {
@@ -458,6 +458,43 @@ async function refreshLog() {
     t.textContent = e.ms != null ? `${e.ms}ms` : "";
     li.append(m, s, u, t);
     ul.appendChild(li);
+
+    // Expandable curl equivalent. The token in it is the buildCurl
+    // placeholder, never the real bearer token.
+    if (e.curl) {
+      const toggle = document.createElement("button");
+      toggle.className = "link";
+      toggle.textContent = "curl";
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", `Show curl for ${e.method} ${e.url}`);
+      li.appendChild(toggle);
+
+      const detail = document.createElement("li");
+      detail.className = "log__detail hidden";
+      const head = document.createElement("div");
+      head.className = "code-block__head";
+      const label = document.createElement("span");
+      label.textContent = "Equivalent curl — token redacted";
+      const copy = document.createElement("button");
+      copy.className = "link";
+      copy.textContent = "Copy";
+      copy.addEventListener("click", async () => {
+        await navigator.clipboard.writeText(e.curl);
+        copy.textContent = "Copied";
+        setTimeout(() => (copy.textContent = "Copy"), 1400);
+      });
+      head.append(label, copy);
+      const box = document.createElement("div");
+      box.className = "code-block code-block--wrap";
+      box.textContent = e.curl;
+      detail.append(head, box);
+      ul.appendChild(detail);
+
+      toggle.addEventListener("click", () => {
+        const nowHidden = detail.classList.toggle("hidden");
+        toggle.setAttribute("aria-expanded", String(!nowHidden));
+      });
+    }
   }
 }
 
