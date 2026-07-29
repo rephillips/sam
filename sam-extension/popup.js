@@ -467,6 +467,12 @@ async function init() {
   $("docPorts").href = PORT_DOC_URL;
   $("docUsage").href = ACS_USAGE_URL;
 
+  // Version comes from the manifest at runtime, so the footer can never
+  // disagree with the build actually installed.
+  const manifest = chrome.runtime.getManifest && chrome.runtime.getManifest();
+  const ver = (manifest && manifest.version) || "dev";
+  $("version").textContent = /^\d/.test(ver) ? `v${ver}` : ver;
+
   await loadProfile();
   await refreshLog();
 

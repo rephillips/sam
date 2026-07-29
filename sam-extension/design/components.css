@@ -604,6 +604,12 @@ textarea::placeholder { color: var(--text-faint); }
   color: var(--accent-hi);
   text-decoration: underline;
 }
+/* Extension version, read from the manifest at runtime so it cannot drift. */
+.footer__version {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
 
 /* ==========================================================================
    Empty state

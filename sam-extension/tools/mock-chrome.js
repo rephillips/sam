@@ -227,6 +227,9 @@
     },
     runtime: {
       sendMessage: (msg) => route(msg),
+      // "dev" rather than a real number, so a harness tab can never be
+      // mistaken for the installed extension.
+      getManifest: () => ({ version: "dev" }),
       lastError: null,
     },
   };
