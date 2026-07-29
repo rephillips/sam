@@ -215,10 +215,10 @@
   /* ======================================================================
      7. RADIUS / ELEVATION / MOTION / LAYER
      ====================================================================== */
-  --radius-xs: 3px; /* inline code chips */
-  --radius-sm: 4px; /* badges */
-  --radius-md: 6px; /* inputs, buttons, callouts */
-  --radius-lg: 9px; /* modal card */
+  --radius-xs: 5px;  /* inline code chips */
+  --radius-sm: 7px;  /* badges, list rows */
+  --radius-md: 10px; /* inputs, buttons, callouts */
+  --radius-lg: 14px; /* modal card */
 
   --shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.55);
   --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.3);

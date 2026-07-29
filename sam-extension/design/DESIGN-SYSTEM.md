@@ -145,8 +145,9 @@ rather than hierarchy.
 ### Space, radius, motion
 
 Space is a 4px base with 2px half-steps (`--space-1` through `--space-10`);
-prefer even steps outside dense controls. Radius runs `--radius-xs` 3px through
-`--radius-lg` 9px. Durations live in tokens (`--dur-fast`, `--dur-med`,
+prefer even steps outside dense controls. Radius runs `--radius-xs` 5px through
+`--radius-lg` 14px — deliberately soft; every corner in the system comes from
+these four tokens. Durations live in tokens (`--dur-fast`, `--dur-med`,
 `--dur-spin`, `--dur-shimmer`) specifically so `prefers-reduced-motion` can zero
 every animation in the system from one place.
 
