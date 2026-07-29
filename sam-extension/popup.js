@@ -82,6 +82,7 @@ async function loadProfile() {
     $("token").placeholder = "•••••••• token in session";
     setStatus($("connStatus"), "Token is loaded for this browser session.", "ok");
     collapseConn(true);
+    startTokenTimer(res.expiresAt);
   } else if (p && p.stack) {
     setStatus($("connStatus"), "Stack saved. Enter your API token to continue.", "info");
   } else {
@@ -106,6 +107,51 @@ function collapseConn(collapse) {
   $("connBody").classList.toggle("hidden", collapse);
   $("connToggle").querySelector(".panel__chev").textContent = collapse ? "▸" : "▾";
   $("connToggle").setAttribute("aria-expanded", String(!collapse));
+}
+
+/* ------------------------------ token countdown ------------------------------ */
+
+// The worker gives the token a fixed lifetime and reports expiresAt; this
+// renders the remaining time in the top bar. The alarm in the worker is the
+// enforcement — this display is informational and self-corrects by re-asking
+// the worker when it reaches zero.
+const TIMER_WARN_MS = 5 * 60 * 1000;
+let timerInterval = null;
+
+function stopTokenTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  $("tokenTimer").classList.add("hidden");
+}
+
+function startTokenTimer(expiresAt) {
+  stopTokenTimer();
+  if (!expiresAt) return;
+  const chip = $("tokenTimer");
+
+  const tick = async () => {
+    const left = expiresAt - Date.now();
+    if (left <= 0) {
+      stopTokenTimer();
+      // Confirm with the worker rather than assuming — lock-clear or a
+      // re-save may have changed the state underneath us.
+      const res = await send({ type: "hasToken" });
+      if (res && res.hasToken && res.expiresAt) {
+        startTokenTimer(res.expiresAt);
+      } else {
+        $("token").placeholder = "eyJhbGciOi...";
+        setStatus($("connStatus"), "Token self-destructed. Save a token to continue.", "info");
+      }
+      return;
+    }
+    const mins = Math.floor(left / 60000);
+    const secs = Math.floor((left % 60000) / 1000);
+    chip.textContent = `⏱ ${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    chip.className = `badge ${left <= TIMER_WARN_MS ? "badge--warn" : "badge--accent"}`;
+  };
+
+  tick();
+  timerInterval = setInterval(tick, 1000);
 }
 
 /* ------------------------------ ACS ------------------------------ */
@@ -569,6 +615,8 @@ async function init() {
       $("token").value = "";
       $("token").placeholder = "•••••••• token in session";
       toggleTokenHelp(false);
+      const status = await send({ type: "hasToken" });
+      if (status && status.expiresAt) startTokenTimer(status.expiresAt);
     } else {
       const has = await send({ type: "hasToken" });
       if (!has.hasToken) {
@@ -588,6 +636,7 @@ async function init() {
     $("token").value = "";
     $("token").placeholder = "eyJhbGciOi...";
     invalidateList();
+    stopTokenTimer();
     setStatus($("connStatus"), "Token cleared from session memory.", "info");
   });
 

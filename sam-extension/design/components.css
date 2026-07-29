@@ -111,6 +111,11 @@ body {
   color: var(--accent-hi);
   border-color: var(--info-line);
 }
+.badge--warn {
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+  border-color: var(--warn-line);
+}
 
 /* ==========================================================================
    Notice — full-bleed environment banner

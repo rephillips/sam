@@ -5,10 +5,11 @@
 import { buildIpAllowListUrl, buildCurl, ENVIRONMENTS } from "./acs.js";
 
 const TOKEN_KEY = "sam_token";
+const TOKEN_EXPIRY_KEY = "sam_token_expiry";
 const LOG_KEY = "sam_request_log";
 const MAX_LOG = 25;
 const TOKEN_TTL_ALARM = "sam_token_ttl";
-const TOKEN_TTL_MINUTES = 30;
+const TOKEN_TTL_MINUTES = 60;
 
 // Session storage is TRUSTED_CONTEXTS by default; state it explicitly so the
 // guarantee survives future drift (e.g. someone adding a content script).
@@ -21,9 +22,14 @@ chrome.storage.session.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" }).catch
 // password) before it is stored or ever sent as a bearer header.
 const JWT_SHAPE = /^eyJ[\w-]+\.[\w-]+\.[\w-]+$/;
 
+// Self-destruct: the token has a fixed TOKEN_TTL_MINUTES lifetime from the
+// moment it is saved. No activity extends it — a credential in a browser has
+// a bounded life, full stop. The expiry timestamp is stored alongside so the
+// popup can render a countdown; the alarm is the enforcement.
 async function setToken(token) {
-  await chrome.storage.session.set({ [TOKEN_KEY]: token });
-  await touchTokenTtl();
+  const expiresAt = Date.now() + TOKEN_TTL_MINUTES * 60 * 1000;
+  await chrome.storage.session.set({ [TOKEN_KEY]: token, [TOKEN_EXPIRY_KEY]: expiresAt });
+  await chrome.alarms.create(TOKEN_TTL_ALARM, { delayInMinutes: TOKEN_TTL_MINUTES });
 }
 
 async function getToken() {
@@ -31,16 +37,14 @@ async function getToken() {
   return bag[TOKEN_KEY] || null;
 }
 
-async function clearToken() {
-  await chrome.storage.session.remove(TOKEN_KEY);
-  await chrome.alarms.clear(TOKEN_TTL_ALARM);
+async function getTokenExpiry() {
+  const bag = await chrome.storage.session.get(TOKEN_EXPIRY_KEY);
+  return bag[TOKEN_EXPIRY_KEY] || null;
 }
 
-// Idle timeout: the token dies TOKEN_TTL_MINUTES after its last use, not when
-// the browser eventually closes — browsers stay open for days. Re-arming on
-// every use makes it a sliding window over the working session.
-async function touchTokenTtl() {
-  await chrome.alarms.create(TOKEN_TTL_ALARM, { delayInMinutes: TOKEN_TTL_MINUTES });
+async function clearToken() {
+  await chrome.storage.session.remove([TOKEN_KEY, TOKEN_EXPIRY_KEY]);
+  await chrome.alarms.clear(TOKEN_TTL_ALARM);
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -76,12 +80,11 @@ async function acsIpAllowList({ envId, stack, feature, ipVersion, method, subnet
       ok: false,
       status: 0,
       error:
-        "No API token in session — it may have expired after " +
-        `${TOKEN_TTL_MINUTES} minutes idle or been cleared on screen lock. ` +
-        "Save a token in the Connection panel.",
+        "No API token in session — it self-destructs " +
+        `${TOKEN_TTL_MINUTES} minutes after being saved, and is also cleared ` +
+        "on screen lock. Save a token in the Connection panel.",
     };
   }
-  await touchTokenTtl(); // each use slides the expiry window
 
   let url;
   try {
@@ -200,7 +203,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse({ ok: true });
           break;
         case "hasToken":
-          sendResponse({ ok: true, hasToken: Boolean(await getToken()) });
+          sendResponse({
+            ok: true,
+            hasToken: Boolean(await getToken()),
+            expiresAt: await getTokenExpiry(),
+          });
           break;
         case "clearToken":
           await clearToken();

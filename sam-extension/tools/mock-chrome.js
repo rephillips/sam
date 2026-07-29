@@ -29,6 +29,24 @@
   const LATENCY = scenario === "slow" ? 2500 : 120;
   const FIXTURE_KEY = "sam_dev_fixtures";
 
+  // Token lifetime in seconds. Mirrors the worker's 60-minute self-destruct;
+  // override with &ttl=<seconds> to watch the countdown expire quickly.
+  const TOKEN_TTL_S = Number(params.get("ttl")) > 0 ? Number(params.get("ttl")) : 3600;
+
+  // Expired tokens are as good as absent — same behaviour as the worker's
+  // alarm, enforced lazily at read time since the mock has no alarms.
+  function liveToken() {
+    const t = memSession.getItem("sam_token");
+    if (!t) return null;
+    const exp = Number(memSession.getItem("sam_token_expiry"));
+    if (exp && Date.now() > exp) {
+      memSession.removeItem("sam_token");
+      memSession.removeItem("sam_token_expiry");
+      return null;
+    }
+    return t;
+  }
+
   const SEED = {
     "search-api": ["52.24.108.7/32", "34.210.15.0/24", "18.246.31.128/25"],
     "search-ui": ["52.24.108.7/32"],
@@ -158,7 +176,11 @@
   async function route(msg) {
     switch (msg.type) {
       case "hasToken":
-        return { ok: true, hasToken: !!memSession.getItem("sam_token") };
+        return {
+          ok: true,
+          hasToken: Boolean(liveToken()),
+          expiresAt: liveToken() ? Number(memSession.getItem("sam_token_expiry")) : null,
+        };
 
       case "saveToken":
         // A real Splunk Cloud token is a three-segment JWT. Refuse the shape
@@ -172,10 +194,12 @@
           };
         }
         memSession.setItem("sam_token", msg.token);
+        memSession.setItem("sam_token_expiry", String(Date.now() + TOKEN_TTL_S * 1000));
         return { ok: true };
 
       case "clearToken":
         memSession.removeItem("sam_token");
+        memSession.removeItem("sam_token_expiry");
         return { ok: true };
 
       case "getLog":
@@ -188,7 +212,7 @@
         await sleep(LATENCY);
         const ms = Date.now() - started;
 
-        if (!memSession.getItem("sam_token")) {
+        if (!liveToken()) {
           record(p.method, url, 0, ms, curlFor(p));
           return { ok: false, error: "No API token in session. Enter one and save.", ms };
         }

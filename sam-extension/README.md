@@ -106,9 +106,10 @@ with access explicitly pinned to trusted contexts.
 
 - Never written to `localStorage` or `chrome.storage.local`.
 - Never returned to the popup after it is saved.
-- **Idle timeout**: cleared 30 minutes after its last use (sliding window —
-  every ACS request re-arms it), because browsers stay open for days and
-  "cleared on browser close" alone is a weak bound.
+- **Self-destructs 60 minutes after save** — a fixed lifetime; no amount of
+  activity extends it. A countdown badge in the top bar shows the time
+  remaining and turns amber for the final five minutes. Re-saving the token
+  restarts the clock.
 - **Cleared on screen lock**, so stepping away from the machine ends the
   session's credential.
 - Cleared when the browser closes, or manually via **Clear token**.
