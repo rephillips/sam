@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+
+# Build artifacts — regenerate with `npm run package` / tools/build-styleguide.mjs
+*.zip
+sam-styleguide.html
+sam-extension/design/styleguide.standalone.html
+
+# OS noise
+.DS_Store

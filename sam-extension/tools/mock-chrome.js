@@ -1,0 +1,240 @@
+/**
+ * Mock chrome.* API for local development.
+ *
+ * Injected by tools/dev.mjs ahead of popup.js so the real popup can run in an
+ * ordinary browser tab. Never packaged — the injection happens at serve time
+ * and this file is excluded from the zip.
+ *
+ * Implements exactly the surface popup.js touches:
+ *   chrome.storage.local   .get/.set          (backed by localStorage)
+ *   chrome.storage.session .get/.set/.remove  (backed by sessionStorage)
+ *   chrome.runtime.sendMessage — hasToken | saveToken | clearToken |
+ *                                acsIpAllowList | getLog
+ *
+ * Scenarios (append to the URL) let you drive design states without a stack:
+ *   ?scenario=populated   three subnets on search-api            (default)
+ *   ?scenario=empty       allow list comes back empty
+ *   ?scenario=error       ACS returns 403
+ *   ?scenario=slow        2.5s latency, for loading states
+ *   ?scenario=fresh       no token, no saved profile (first-run)
+ *   &shot=1               hides the DEV chip, for screenshots
+ */
+(function () {
+  "use strict";
+
+  const params = new URLSearchParams(location.search);
+  const scenario = params.get("scenario") || "populated";
+  const isShot = params.get("shot") === "1";
+
+  const LATENCY = scenario === "slow" ? 2500 : 120;
+  const FIXTURE_KEY = "sam_dev_fixtures";
+
+  const SEED = {
+    "search-api": ["52.24.108.7/32", "34.210.15.0/24", "18.246.31.128/25"],
+    "search-ui": ["52.24.108.7/32"],
+    hec: ["34.210.15.0/24"],
+    s2s: [],
+  };
+
+  if (scenario === "fresh") {
+    localStorage.removeItem("sam_profile");
+    sessionStorage.clear();
+  }
+  if (params.get("reset") === "1") {
+    localStorage.removeItem(FIXTURE_KEY);
+    localStorage.removeItem("sam_profile");
+    sessionStorage.clear();
+  }
+
+  function fixtures() {
+    try {
+      const raw = localStorage.getItem(FIXTURE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_) {
+      /* fall through to seed */
+    }
+    const seeded = JSON.parse(JSON.stringify(SEED));
+    localStorage.setItem(FIXTURE_KEY, JSON.stringify(seeded));
+    return seeded;
+  }
+
+  function saveFixtures(f) {
+    localStorage.setItem(FIXTURE_KEY, JSON.stringify(f));
+  }
+
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  /* ── storage ─────────────────────────────────────────────────────────── */
+  function makeStore(backing) {
+    const keysOf = (query) => {
+      if (query === null || query === undefined) return Object.keys(backing);
+      if (typeof query === "string") return [query];
+      if (Array.isArray(query)) return query;
+      return Object.keys(query);
+    };
+    return {
+      async get(query) {
+        const out = {};
+        for (const k of keysOf(query)) {
+          const raw = backing.getItem(k);
+          if (raw !== null) {
+            try {
+              out[k] = JSON.parse(raw);
+            } catch (_) {
+              out[k] = raw;
+            }
+          } else if (query && typeof query === "object" && !Array.isArray(query)) {
+            out[k] = query[k];
+          }
+        }
+        return out;
+      },
+      async set(obj) {
+        for (const [k, v] of Object.entries(obj)) backing.setItem(k, JSON.stringify(v));
+      },
+      async remove(key) {
+        for (const k of Array.isArray(key) ? key : [key]) backing.removeItem(k);
+      },
+    };
+  }
+
+  /* ── request log ─────────────────────────────────────────────────────── */
+  const log = [];
+  function record(method, url, status, ms) {
+    log.unshift({ method, url, status, ms });
+    if (log.length > 25) log.pop();
+  }
+
+  const BASES = {
+    commercial: "https://admin.splunk.com",
+    govcloud_il2: "https://admin.splunkcloudgc.com",
+  };
+
+  const PATHS = {
+    "search-api": "search-api",
+    "search-ui": "search-ui",
+    hec: "hec",
+    s2s: "s2s",
+  };
+
+  function urlFor(p) {
+    const base = BASES[p.envId] || BASES.commercial;
+    const suffix = p.ipVersion === "v6" ? "/ipv6" : "";
+    return `${base}/${p.stack}/adminconfig/v2/access/${PATHS[p.feature]}/ipallowlists${suffix}`;
+  }
+
+  /* ── message router ──────────────────────────────────────────────────── */
+  async function route(msg) {
+    switch (msg.type) {
+      case "hasToken":
+        return { ok: true, hasToken: !!sessionStorage.getItem("sam_token") };
+
+      case "saveToken":
+        sessionStorage.setItem("sam_token", msg.token);
+        return { ok: true };
+
+      case "clearToken":
+        sessionStorage.removeItem("sam_token");
+        return { ok: true };
+
+      case "getLog":
+        return { ok: true, log: log.slice() };
+
+      case "acsIpAllowList": {
+        const p = msg.payload;
+        const url = urlFor(p);
+        const started = Date.now();
+        await sleep(LATENCY);
+        const ms = Date.now() - started;
+
+        if (!sessionStorage.getItem("sam_token")) {
+          record(p.method, url, 0, ms);
+          return { ok: false, error: "No API token in session. Enter one and save.", ms };
+        }
+        if (!p.stack) {
+          record(p.method, url, 0, ms);
+          return { ok: false, error: "No stack configured.", ms };
+        }
+        if (scenario === "error") {
+          record(p.method, url, 403, ms);
+          return {
+            ok: false,
+            error: "ACS returned 403: token lacks the sc_admin role on this stack.",
+            ms,
+          };
+        }
+
+        const f = fixtures();
+        const key = p.feature;
+        f[key] = f[key] || [];
+
+        if (p.method === "GET") {
+          const subnets = scenario === "empty" ? [] : f[key];
+          record("GET", url, 200, ms);
+          return { ok: true, data: { subnets: subnets.slice() }, ms };
+        }
+        if (p.method === "POST") {
+          for (const s of msg.payload.subnets) if (!f[key].includes(s)) f[key].push(s);
+          saveFixtures(f);
+          record("POST", url, 200, ms);
+          return { ok: true, data: { subnets: f[key].slice() }, ms };
+        }
+        if (p.method === "DELETE") {
+          f[key] = f[key].filter((s) => !msg.payload.subnets.includes(s));
+          saveFixtures(f);
+          record("DELETE", url, 200, ms);
+          return { ok: true, data: { subnets: f[key].slice() }, ms };
+        }
+        return { ok: false, error: `Unsupported method ${p.method}`, ms };
+      }
+
+      default:
+        return { ok: false, error: `Mock has no handler for "${msg.type}"` };
+    }
+  }
+
+  window.chrome = {
+    storage: {
+      local: makeStore(window.localStorage),
+      session: makeStore(window.sessionStorage),
+    },
+    runtime: {
+      sendMessage: (msg) => route(msg),
+      lastError: null,
+    },
+  };
+
+  /* ── screenshot mode ─────────────────────────────────────────────────── */
+  // A sticky header renders at its stuck offset in full-page captures, which
+  // shuffles the layout and makes visual diffs noisy. Pin it for screenshots
+  // only — the shipped popup keeps its sticky behaviour.
+  if (isShot) {
+    const style = document.createElement("style");
+    style.textContent = ".topbar{position:static !important}";
+    document.documentElement.appendChild(style);
+  }
+
+  /* ── dev chip ────────────────────────────────────────────────────────── */
+  if (!isShot) {
+    window.addEventListener("DOMContentLoaded", () => {
+      const chip = document.createElement("div");
+      chip.textContent = `DEV · ${scenario}`;
+      chip.title = "Mock chrome.* API — not the packaged extension";
+      chip.style.cssText = [
+        "position:fixed",
+        "right:6px",
+        "bottom:6px",
+        "z-index:9999",
+        "font:9px/1 ui-monospace,Menlo,monospace",
+        "letter-spacing:.5px",
+        "padding:4px 6px",
+        "border-radius:4px",
+        "background:rgba(217,164,65,.16)",
+        "border:1px solid rgba(217,164,65,.5)",
+        "color:#ecc57a",
+        "pointer-events:none",
+      ].join(";");
+      document.body.appendChild(chip);
+    });
+  }
+})();

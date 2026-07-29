@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sam-dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["sam-extension/tools/dev.mjs"],
+      "port": 8910
+    }
+  ]
+}

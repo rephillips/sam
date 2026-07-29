@@ -1,0 +1,19 @@
+{
+  "name": "sam-extension",
+  "version": "0.2.0",
+  "private": true,
+  "description": "SAM — Splunk API Management browser extension",
+  "type": "module",
+  "scripts": {
+    "dev": "node tools/dev.mjs",
+    "test": "node test/validate.test.mjs",
+    "contrast": "node tools/contrast.mjs",
+    "shoot": "node tools/shoot.mjs",
+    "diff": "node tools/diff.mjs",
+    "check": "npm run test && npm run contrast",
+    "package": "node tools/package.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
+}

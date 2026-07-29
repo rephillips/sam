@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="design/tokens.css" />
+    <link rel="stylesheet" href="design/components.css" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>SAM</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <img src="icons/icon48.png" alt="" class="topbar__logo" />
+      <div class="topbar__titles">
+        <h1 class="topbar__title">SAM</h1>
+        <p class="topbar__sub">Splunk API Management</p>
+      </div>
+      <span id="envBadge" class="badge badge--gov">GOVCLOUD IL2</span>
+    </header>
+
+    <div id="govNotice" class="notice notice--gov">
+      FedRAMP Moderate / IL2 environment.
+    </div>
+
+    <!-- ── Connection ─────────────────────────────────────────── -->
+    <section class="panel">
+      <button class="panel__head" id="connToggle" aria-expanded="true" aria-controls="connBody">
+        <span class="panel__chev">▾</span> Connection
+        <span id="connSummary" class="panel__summary"></span>
+      </button>
+
+      <div class="panel__body" id="connBody">
+        <label class="field">
+          Environment
+          <select id="env">
+            <option value="govcloud_il2">GovCloud IL2 (FedRAMP Moderate)</option>
+            <option value="commercial">Commercial</option>
+          </select>
+        </label>
+
+        <label class="field">
+          Experience
+          <select id="experience">
+            <option value="victoria">Victoria</option>
+            <option value="classic">Classic</option>
+          </select>
+        </label>
+        <p class="field__hint">
+          Experience is stored on the profile. IP allow list endpoints are identical on
+          both — it matters for apps and index operations later.
+        </p>
+
+        <label class="field">
+          Stack
+          <input id="stack" type="text" placeholder="csms-2io6tw-47150" spellcheck="false" autocomplete="off" />
+        </label>
+        <p class="field__hint">The URL prefix of the deployment, not the full hostname.</p>
+
+        <div class="field__labelrow">
+          <label class="field__label" for="token">API Token (JWT)</label>
+          <button
+            id="tokenHelpToggle"
+            class="link link--xs"
+            type="button"
+            aria-expanded="false"
+            aria-controls="tokenHelp"
+            title="How to generate a bearer token on the Splunk Cloud search head"
+          >
+            ? How do I get one
+          </button>
+        </div>
+        <input
+          id="token"
+          type="password"
+          placeholder="eyJhbGciOi..."
+          spellcheck="false"
+          autocomplete="off"
+          title="Generate on the Splunk Cloud ad hoc search head: Settings → Tokens → New Token. Copy it immediately — it cannot be viewed again after the dialog closes."
+        />
+
+        <div id="tokenHelp" class="callout callout--info hidden">
+          <div class="callout__title">Generate a bearer token</div>
+          <p class="callout__lead">On the Splunk Cloud stack <strong>ad hoc search head</strong>:</p>
+          <ol class="callout__steps">
+            <li>Go to <span class="code-chip">Settings</span> → <span class="code-chip">Tokens</span> → <span class="code-chip">New Token</span></li>
+            <li>Create the token. A long token string is generated.</li>
+            <li>Copy the token immediately and save it somewhere secure.</li>
+          </ol>
+          <div class="callout callout--warn callout--tight" style="margin-top: var(--space-5)">
+            The token will not be viewable again after you close the dialog box.
+          </div>
+        </div>
+
+        <p class="field__hint">
+          Held in session memory only. Cleared when the browser closes — never written to disk.
+        </p>
+
+        <div class="row">
+          <button id="saveConn" class="btn btn--primary">Save &amp; Test</button>
+          <button id="clearToken" class="btn btn--ghost">Clear token</button>
+        </div>
+        <div id="connStatus" class="status" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ── IP Allow List ───────────────────────────────────────── -->
+    <section class="panel">
+      <div class="panel__head panel__head--static">IP Allow List</div>
+      <div class="panel__body">
+        <div class="row">
+          <label class="field row__grow">
+            Feature
+            <select id="feature">
+              <option value="search-api">Search API (:8089)</option>
+              <option value="search-ui">Search UI (Splunk Web)</option>
+              <option value="hec">HTTP Event Collector</option>
+              <option value="s2s">Forwarders (S2S)</option>
+            </select>
+          </label>
+          <label class="field row__narrow">
+            IP
+            <select id="ipVersion">
+              <option value="v4">IPv4</option>
+              <option value="v6">IPv6</option>
+            </select>
+          </label>
+        </div>
+        <p class="field__hint" id="featureNote"></p>
+
+        <button id="loadList" class="btn btn--primary btn--full">Load allow list</button>
+
+        <div style="margin-top: var(--space-4)">
+          <button
+            id="curlToggle"
+            class="link link--xs"
+            type="button"
+            aria-expanded="false"
+            aria-controls="curlPreview"
+            title="Show the equivalent curl command for reading this allow list"
+          >
+            Show curl
+          </button>
+        </div>
+        <div id="curlPreview" class="hidden" style="margin-top: var(--space-4)">
+          <div class="code-block__head">
+            <span>Equivalent curl — GET</span>
+            <button id="curlCopy" class="link" type="button">Copy</button>
+          </div>
+          <div id="curlBox" class="code-block code-block--wrap"></div>
+        </div>
+
+        <div id="ipTabsWrap" class="hidden" style="margin-top: var(--space-6)">
+          <div id="ipTabs" class="tabs" role="tablist" aria-label="IP allow list actions">
+            <button id="tabView" class="tab is-active" type="button" role="tab" aria-selected="true" aria-controls="paneView">View</button>
+            <button id="tabAdd" class="tab" type="button" role="tab" aria-selected="false" aria-controls="paneAdd" tabindex="-1">Add</button>
+            <button id="tabDelete" class="tab" type="button" role="tab" aria-selected="false" aria-controls="paneDelete" tabindex="-1">Delete</button>
+          </div>
+
+          <!-- View: read-only current allow list -->
+          <div id="paneView" role="tabpanel" aria-labelledby="tabView">
+            <div class="list-head">
+              <span id="listCount">0 subnets</span>
+              <button id="refresh" class="link">Refresh</button>
+            </div>
+            <ul id="subnetList" class="item-list"></ul>
+          </div>
+
+          <!-- Add: submit new subnets -->
+          <div id="paneAdd" role="tabpanel" aria-labelledby="tabAdd" class="hidden">
+            <label class="field">
+              Add subnets
+              <textarea id="addInput" rows="2" placeholder="52.24.108.7/32, 34.210.15.0/24" spellcheck="false"></textarea>
+            </label>
+            <p class="field__hint">
+              Must be public, routable address space. Private (RFC 1918), loopback,
+              link-local, CGNAT, and documentation ranges are rejected before any request is sent.
+            </p>
+            <button id="addBtn" class="btn btn--primary btn--full">Add to allow list</button>
+          </div>
+
+          <!-- Delete: remove subnets from the current list -->
+          <div id="paneDelete" role="tabpanel" aria-labelledby="tabDelete" class="hidden">
+            <p class="field__hint">
+              Remove a subnet with the × on its row. Each removal is confirmed and re-verified.
+              Removing the range you administer from can lock you out.
+            </p>
+            <ul id="subnetListDel" class="item-list"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Activity ────────────────────────────────────────────── -->
+    <section class="panel">
+      <button class="panel__head" id="logToggle" aria-expanded="false" aria-controls="logBody">
+        <span class="panel__chev">▸</span> Activity
+      </button>
+      <div class="panel__body hidden" id="logBody">
+        <ul id="logList" class="log"></ul>
+      </div>
+    </section>
+
+    <!-- ── Confirm modal ───────────────────────────────────────── -->
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal__card">
+        <h2 id="modalTitle" class="modal__title">Confirm</h2>
+        <div id="modalBody"></div>
+        <div class="row modal__actions">
+          <button id="modalCancel" class="btn btn--ghost">Cancel</button>
+          <button id="modalConfirm" class="btn btn--danger">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <a id="docPorts" class="footer__link" href="#" target="_blank" rel="noreferrer">Feature / port reference</a>
+      <a id="docUsage" class="footer__link" href="#" target="_blank" rel="noreferrer">ACS usage</a>
+    </div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

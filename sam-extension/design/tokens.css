@@ -1,0 +1,250 @@
+/* ==========================================================================
+   SAM Design System — Tokens
+   --------------------------------------------------------------------------
+   The only file in the system that may contain a raw colour, size, or timing
+   value. Everything else composes these.
+
+   Two tiers:
+     1. PRIMITIVES — the raw palette. Never referenced by components.
+     2. SEMANTIC   — meaning-named aliases. This is the component API.
+
+   The indirection is what makes the system retargetable: a Splunk-branded or
+   light theme reassigns the semantic layer and leaves every component alone.
+
+   Contrast contract: every foreground/background pairing in tools/contrast.mjs
+   holds WCAG 2.1 AA — 4.5:1 for text, 3:1 for interactive boundaries and
+   focus indicators. `npm run contrast` fails the build if a change breaks one.
+   ========================================================================== */
+
+:root {
+  /* ======================================================================
+     1. PRIMITIVES
+     ====================================================================== */
+
+  /* Neutral ramp — cool slate. Numbers descend as the colour lightens, so
+     900 is the darkest surface and 100 the brightest text. */
+  --slate-950: #0b0f16; /* inset surfaces: inputs, code blocks */
+  --slate-900: #0e1117; /* app background */
+  --slate-850: #131922; /* top bar gradient origin */
+  --slate-800: #161b24; /* panel */
+  --slate-750: #1c2230; /* raised panel: list rows */
+  --slate-700: #2a3242; /* decorative dividers */
+  --slate-500: #5b6c8e; /* interactive boundaries — meets 3:1 on all surfaces */
+  --slate-400: #7d8a9a; /* de-emphasised text — meets 4.5:1 on all surfaces */
+  --slate-300: #8b98a9; /* secondary text */
+  --slate-100: #e6edf3; /* primary text */
+
+  /* Teal — the product accent. */
+  --teal-600: #009585;
+  --teal-500: #00b5a0;
+  --teal-400: #00d6bd;
+  --teal-ink: #05201c; /* text that sits on top of teal */
+
+  /* Green — modern emerald. Drives the primary action's tonal fill only; the
+     teal accent above still owns links, focus, success, and info. A slightly
+     darker, greener register than teal so the primary control reads as its own
+     deliberate colour rather than a brighter teal. */
+  --green-600: #20a86f; /* darker green — press / active */
+  --green-500: #27c987; /* accent + tonal fill hue */
+  --green-400: #5edaa0; /* label + border hue, the bright step */
+
+  /* Red — destructive. red-600 is tuned so white text clears 4.5:1. */
+  --red-600: #d8322a;
+  --red-500: #e5534b;
+  --red-400: #f26b63;
+  --red-ink: #ffffff;
+
+  /* Amber — caution. */
+  --amber-500: #d9a441;
+  --amber-200: #ecc57a;
+
+  /* Violet — reserved exclusively for FedRAMP / GovCloud signalling.
+     Never use violet for ordinary emphasis; it is a compliance marker. */
+  --violet-500: #7b5cff;
+  --violet-300: #b3a0ff;
+  --violet-200: #c4b5ff;
+
+  /* ======================================================================
+     2. SEMANTIC — SURFACES
+     ====================================================================== */
+  --bg: var(--slate-900);
+  --panel: var(--slate-800);
+  --panel-2: var(--slate-750);
+  --surface-code: var(--slate-950);
+  --surface-input: var(--slate-950);
+  --topbar-from: var(--slate-850);
+  --topbar-to: var(--slate-900);
+  --scrim: rgba(0, 0, 0, 0.72);
+
+  /* ── boundaries ────────────────────────────────────────────────────────
+     Two weights, and the distinction is a WCAG requirement, not taste.
+     `--line` separates regions — decorative, exempt from contrast rules.
+     `--line-strong` outlines controls the user must be able to find, so it
+     carries the 3:1 non-text contrast minimum (WCAG 1.4.11). */
+  --line: var(--slate-700);
+  --line-strong: var(--slate-500);
+
+  /* ======================================================================
+     3. SEMANTIC — TEXT
+     ====================================================================== */
+  --text: var(--slate-100);
+  --muted: var(--slate-300);
+  --text-faint: var(--slate-400);
+  --on-accent: var(--teal-ink);
+  --on-danger: var(--red-ink);
+
+  /* ======================================================================
+     4. SEMANTIC — INTENT
+     ----------------------------------------------------------------------
+     Each intent supplies a triplet: a solid for fills, a `-fg` for text on a
+     dark surface, and a `-bg` / `-line` pair for tinted callouts.
+     ====================================================================== */
+
+  /* accent / primary — the product accent is the modern green. It drives link
+     text, success, callout titles, the active tab, focus, and the primary
+     button. Teal (--teal-*) is retired from the accent role and kept only as a
+     primitive for reference. */
+  --accent: var(--green-500);
+  --accent-hi: var(--green-400);
+  --accent-press: var(--green-600);
+  --info-bg: rgba(39, 201, 135, 0.06);
+  --info-line: rgba(39, 201, 135, 0.28);
+
+  /* Soft (tonal) primary fill — a translucent wash of modern green over the
+     surface rather than a solid slab. The label is the bright green foreground
+     (--accent-soft-fg), not an ink, because the blended fill is too dark to
+     carry dark text. A visible border keeps the control's edge legible. */
+  --accent-soft: rgba(39, 201, 135, 0.17);
+  --accent-soft-hover: rgba(39, 201, 135, 0.27);
+  --accent-soft-active: rgba(39, 201, 135, 0.35);
+  --accent-soft-line: rgba(94, 218, 160, 0.6);
+  --accent-soft-fg: var(--green-400);
+
+  /* success — the accent green now carries it, which reads as success too. */
+  --ok-fg: var(--green-400);
+
+  /* danger */
+  --danger: var(--red-600);
+  --danger-hi: var(--red-500);
+  --danger-fg: var(--red-400);
+  --danger-bg: rgba(229, 83, 75, 0.1);
+  --danger-line: rgba(229, 83, 75, 0.38);
+
+  /* Soft (tonal) danger fill — same tonal treatment as --accent-soft, in the
+     destructive hue, label carried by the bright --danger-fg. */
+  --danger-soft: rgba(216, 50, 42, 0.16);
+  --danger-soft-hover: rgba(216, 50, 42, 0.28);
+  --danger-soft-active: rgba(216, 50, 42, 0.36);
+  --danger-soft-line: rgba(242, 107, 99, 0.82);
+
+  /* warning */
+  --warn: var(--amber-500);
+  --warn-fg: var(--amber-200);
+  --warn-bg: rgba(217, 164, 65, 0.12);
+  --warn-line: rgba(217, 164, 65, 0.4);
+
+  /* restricted environment (FedRAMP / GovCloud IL2) */
+  --gov: var(--violet-500);
+  --gov-fg: var(--violet-200);
+  --gov-badge-fg: var(--violet-300);
+  --gov-bg: rgba(123, 92, 255, 0.12);
+  --gov-line: rgba(123, 92, 255, 0.45);
+
+  /* focus — one ring everywhere, never removed without replacement */
+  --focus: var(--green-400);
+  --focus-ring: 0 0 0 2px rgba(94, 218, 160, 0.5);
+
+  /* Unfilled portion of a button spinner ring, per button variant. The primary
+     and danger tracks are faint washes of their own hue, since the tonal fills
+     now carry a bright same-hue label rather than an ink. */
+  --spinner-track-on-accent: rgba(94, 218, 160, 0.25);
+  --spinner-track-on-ghost: rgba(139, 152, 169, 0.3);
+  --spinner-track-on-danger: rgba(242, 107, 99, 0.25);
+
+  /* ======================================================================
+     5. TYPOGRAPHY
+     ----------------------------------------------------------------------
+     Six sizes. The pre-system UI drifted to ten (9 / 10 / 10.5 / 11 / 11.5 /
+     12 / 12.5 / 13 / 14 / 15px), which is more resolution than a 430px popup
+     can express — differences under a point read as inconsistency, not
+     hierarchy.
+     ====================================================================== */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --fs-2xs: 9px;    /* badges, all-caps micro labels */
+  --fs-xs: 10.5px;  /* hints, activity log, footer */
+  --fs-sm: 11.5px;  /* field labels, status, list rows, callouts */
+  --fs-md: 13px;    /* body, inputs, buttons */
+  --fs-lg: 14px;    /* modal titles */
+  --fs-xl: 15px;    /* app title */
+
+  --lh-tight: 1.3;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.75;
+
+  --fw-regular: 400;
+  --fw-medium: 600;
+  --fw-semibold: 650;
+  --fw-bold: 700;
+
+  --ls-wide: 0.4px;  /* uppercase panel headings */
+  --ls-wider: 0.7px; /* badges */
+
+  /* ======================================================================
+     6. SPACE
+     ----------------------------------------------------------------------
+     4px base with 2px half-steps, which dense controls genuinely need.
+     Prefer the even steps; reach for odd ones only inside a control.
+     ====================================================================== */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-7: 14px;
+  --space-8: 16px;
+  --space-9: 18px;
+  --space-10: 20px;
+
+  /* Shared edge padding for every full-width region, so the top bar, panel
+     bodies, and footer align on one gutter. */
+  --gutter: var(--space-7);
+
+  /* ======================================================================
+     7. RADIUS / ELEVATION / MOTION / LAYER
+     ====================================================================== */
+  --radius-xs: 3px; /* inline code chips */
+  --radius-sm: 4px; /* badges */
+  --radius-md: 6px; /* inputs, buttons, callouts */
+  --radius-lg: 9px; /* modal card */
+
+  --shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.3);
+
+  --dur-fast: 120ms;
+  --dur-med: 200ms;
+  --dur-spin: 700ms;    /* one revolution of a button spinner */
+  --dur-shimmer: 1.4s;  /* one pass of a skeleton sweep */
+  --ease-standard: cubic-bezier(0.2, 0, 0.2, 1);
+
+  --z-sticky: 5;
+  --z-modal: 50;
+  --z-toast: 60;
+
+  /* ======================================================================
+     8. LAYOUT
+     ====================================================================== */
+  --popup-width: 430px;
+  --popup-max-height: 600px;
+  --list-max-height: 190px;
+}
+
+/* Honour the OS reduced-motion setting across every component at once. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-med: 0ms;
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "SAM — Splunk API Management",
+  "version": "0.2.0",
+  "description": "Splunk Cloud ACS admin from the browser. MVP: GovCloud IL2 IP allow list management.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://admin.splunk.com/*",
+    "https://admin.splunkcloudgc.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SAM — Splunk API Management",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+}

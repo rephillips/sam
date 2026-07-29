@@ -1,0 +1,18 @@
+/* ==========================================================================
+   SAM popup — application shell
+   --------------------------------------------------------------------------
+   Everything visual lives in the design system:
+     design/tokens.css      values
+     design/components.css  components
+
+   This file holds only what is specific to running inside a browser-action
+   popup, which is not a reusable component and has no place in the system.
+   If you are about to add a colour or a component rule here, it belongs in
+   components.css instead.
+   ========================================================================== */
+
+body {
+  width: var(--popup-width);
+  max-height: var(--popup-max-height);
+  overflow-y: auto;
+}

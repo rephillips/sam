@@ -1,0 +1,220 @@
+/* ==========================================================================
+   Style guide chrome
+   --------------------------------------------------------------------------
+   Layout for the documentation page only. Nothing here ships in the popup,
+   and nothing here defines a component — it exists so the components have a
+   page to sit on. Still built from tokens, because a style guide that breaks
+   its own rules is not evidence of anything.
+   ========================================================================== */
+
+.guide {
+  width: auto;
+  max-width: none;
+  max-height: none;
+  padding: 0 0 var(--space-10);
+}
+
+.guide__masthead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-10) var(--space-10) var(--space-8);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--topbar-from), var(--topbar-to));
+}
+.guide__h1 {
+  margin: 0 0 var(--space-2);
+  font-size: 22px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.3px;
+}
+.guide__lede {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: var(--fs-md);
+  line-height: var(--lh-normal);
+}
+
+.guide__nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-10);
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-sm);
+}
+.guide__nav a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.guide__nav a:hover {
+  color: var(--accent-hi);
+  text-decoration: underline;
+}
+
+.guide__section {
+  padding: var(--space-10);
+  border-bottom: 1px solid var(--line);
+  max-width: 1000px;
+}
+.guide__h2 {
+  margin: 0 0 var(--space-5);
+  font-size: 18px;
+  font-weight: var(--fw-semibold);
+}
+.guide__h3 {
+  margin: var(--space-10) 0 var(--space-5);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  color: var(--muted);
+}
+.guide__note {
+  max-width: 68ch;
+  margin: 0 0 var(--space-6);
+  color: var(--muted);
+  font-size: var(--fs-md);
+  line-height: var(--lh-normal);
+}
+.guide__note strong { color: var(--text); }
+
+.guide__list {
+  margin: 0 0 var(--space-6);
+  padding-left: var(--space-9);
+  color: var(--muted);
+  font-size: var(--fs-md);
+  line-height: var(--lh-relaxed);
+}
+
+/* Swatches ---------------------------------------------------------------- */
+.guide__swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.swatch {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.swatch__chip {
+  padding: var(--space-6);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+.swatch__meta {
+  padding: var(--space-3) var(--space-5);
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.swatch__ratio { white-space: nowrap; }
+.swatch__ratio--pass { color: var(--ok-fg); }
+.swatch__ratio--fail { color: var(--danger-fg); }
+
+/* Scales ------------------------------------------------------------------ */
+.scale-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-6);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+}
+.scale-row__token {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  width: 150px;
+  flex-shrink: 0;
+}
+.scale-row__value {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-faint);
+  width: 64px;
+  flex-shrink: 0;
+}
+.scale-row__bar {
+  height: 12px;
+  background: var(--accent);
+  border-radius: var(--radius-xs);
+}
+
+/* Demo containers --------------------------------------------------------- */
+.guide__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+.guide__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+.guide__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.guide__cell span {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-faint);
+}
+.guide__box {
+  padding: var(--space-8);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.guide__panelbox {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-8);
+  margin-bottom: var(--space-6);
+  max-width: 430px;
+}
+/* The demo shows toasts in place; the real component is fixed to the viewport. */
+.guide__panelbox--relative.toast-region {
+  position: static;
+  display: block;
+}
+.guide__panelbox .toast { position: static; margin-bottom: var(--space-3); }
+
+.guide__modalframe {
+  background: var(--scrim);
+  border-radius: var(--radius-md);
+  padding: var(--space-9);
+  max-width: 430px;
+}
+
+.guide__footer {
+  padding: var(--space-10);
+  color: var(--text-faint);
+  font-size: var(--fs-sm);
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+.guide__footer-sep { color: var(--line-strong); }
