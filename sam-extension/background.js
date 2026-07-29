@@ -7,11 +7,23 @@ import { buildIpAllowListUrl, ENVIRONMENTS } from "./acs.js";
 const TOKEN_KEY = "sam_token";
 const LOG_KEY = "sam_request_log";
 const MAX_LOG = 25;
+const TOKEN_TTL_ALARM = "sam_token_ttl";
+const TOKEN_TTL_MINUTES = 30;
+
+// Session storage is TRUSTED_CONTEXTS by default; state it explicitly so the
+// guarantee survives future drift (e.g. someone adding a content script).
+chrome.storage.session.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" }).catch(() => {});
 
 /* ------------------------------ token ------------------------------ */
 
+// A Splunk Cloud API token is a three-segment JWT. Enforcing the shape at the
+// trust boundary catches the wrong secret being pasted (an AWS key, a
+// password) before it is stored or ever sent as a bearer header.
+const JWT_SHAPE = /^eyJ[\w-]+\.[\w-]+\.[\w-]+$/;
+
 async function setToken(token) {
   await chrome.storage.session.set({ [TOKEN_KEY]: token });
+  await touchTokenTtl();
 }
 
 async function getToken() {
@@ -21,7 +33,24 @@ async function getToken() {
 
 async function clearToken() {
   await chrome.storage.session.remove(TOKEN_KEY);
+  await chrome.alarms.clear(TOKEN_TTL_ALARM);
 }
+
+// Idle timeout: the token dies TOKEN_TTL_MINUTES after its last use, not when
+// the browser eventually closes — browsers stay open for days. Re-arming on
+// every use makes it a sliding window over the working session.
+async function touchTokenTtl() {
+  await chrome.alarms.create(TOKEN_TTL_ALARM, { delayInMinutes: TOKEN_TTL_MINUTES });
+}
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === TOKEN_TTL_ALARM) clearToken();
+});
+
+// Walk-away protection: wipe the token the moment the OS session locks.
+chrome.idle.onStateChanged.addListener((state) => {
+  if (state === "locked") clearToken();
+});
 
 /* ------------------------------ logging ------------------------------ */
 // Log metadata only. Never the token, never full response bodies.
@@ -43,8 +72,16 @@ async function getLog() {
 async function acsIpAllowList({ envId, stack, feature, ipVersion, method, subnets }) {
   const token = await getToken();
   if (!token) {
-    return { ok: false, status: 0, error: "No API token saved. Save a token in the Connection panel." };
+    return {
+      ok: false,
+      status: 0,
+      error:
+        "No API token in session — it may have expired after " +
+        `${TOKEN_TTL_MINUTES} minutes idle or been cleared on screen lock. ` +
+        "Save a token in the Connection panel.",
+    };
   }
+  await touchTokenTtl(); // each use slides the expiry window
 
   let url;
   try {
@@ -134,11 +171,27 @@ function humanizeError(status, data, envId) {
 
 /* ------------------------------ messaging ------------------------------ */
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // Defense-in-depth: only this extension's own pages may drive the worker.
+  // Currently nothing else can reach onMessage (no content scripts, no
+  // externally_connectable), but this check keeps that true if the manifest
+  // ever drifts.
+  if (!sender || sender.id !== chrome.runtime.id) {
+    sendResponse({ ok: false, error: "Unauthorized sender." });
+    return false;
+  }
   (async () => {
     try {
       switch (msg.type) {
         case "saveToken":
+          if (!JWT_SHAPE.test(String(msg.token || ""))) {
+            sendResponse({
+              ok: false,
+              error:
+                "That doesn't look like a Splunk Cloud token (expected a three-segment JWT starting with \"eyJ\"). Check what you pasted.",
+            });
+            break;
+          }
           await setToken(msg.token);
           sendResponse({ ok: true });
           break;

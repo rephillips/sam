@@ -240,8 +240,11 @@ on backdrop click, and on Cancel. Carries `role="dialog"`, `aria-modal`, and
 
 SAM's confirm dialog always shows the exact subnets affected and the equivalent
 `curl`, so an operator can see precisely what is about to happen and reproduce
-it outside the extension if they would rather. Focus is not yet trapped inside
-the card — that is an open gap.
+it outside the extension if they would rather. Destructive confirms add a
+type-to-confirm challenge: the danger button stays disabled until the operator
+types `DELETE` exactly, which converts "two reflexive clicks" into a deliberate
+act. The challenge input is auto-focused on open and Enter submits once the
+word matches. Focus is not yet trapped inside the card — that is an open gap.
 
 ### Skeleton
 

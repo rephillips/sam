@@ -27,7 +27,8 @@ The Environment selector picks the ACS host:
 GovCloud is the default and is visually distinguished (purple badge plus a
 banner) so it is never ambiguous which boundary you are operating in.
 
-Experience (Victoria / Classic) is stored on the connection profile. IP allow
+Experience (Classic by default, or Victoria) is stored on the connection
+profile. IP allow
 list endpoints are identical across both experiences, so it does not affect
 routing today — it is captured because apps and index endpoints do branch on it,
 and that is the next surface to build.
@@ -58,6 +59,9 @@ a notice rather than being silently sent.
 ## Safety behaviour
 
 - **Confirm step on every write**, showing exactly which subnets change.
+- **Type-to-confirm on removals**: the Remove button stays disabled until the
+  operator types `DELETE` into the confirm dialog, so a destructive change can
+  never be two reflexive clicks.
 - **Lockout warnings** on `search-api` and `search-ui` removals, and an explicit
   warning when a removal would empty an allow list (which denies all access).
 - **Automatic re-read after every write.** SAM re-runs the `GET` and confirms the
@@ -88,11 +92,21 @@ The token will not be viewable again after the dialog box is closed.
 
 ## Token handling
 
-The API token is held by the service worker in `chrome.storage.session` only.
+The API token is held by the service worker in `chrome.storage.session` only,
+with access explicitly pinned to trusted contexts.
 
 - Never written to `localStorage` or `chrome.storage.local`.
 - Never returned to the popup after it is saved.
-- Cleared automatically when the browser closes, or manually via **Clear token**.
+- **Idle timeout**: cleared 30 minutes after its last use (sliding window —
+  every ACS request re-arms it), because browsers stay open for days and
+  "cleared on browser close" alone is a weak bound.
+- **Cleared on screen lock**, so stepping away from the machine ends the
+  session's credential.
+- Cleared when the browser closes, or manually via **Clear token**.
+- **Shape-validated on save**: the worker refuses anything that is not a
+  three-segment JWT, so a mispasted secret (an AWS key, a password) is never
+  stored or transmitted.
+- The message listener rejects senders other than the extension itself.
 - Only the stack, environment, experience, and feature selection persist to disk.
 
 Host permissions are scoped to the two ACS hosts and nothing else. All requests

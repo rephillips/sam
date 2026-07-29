@@ -68,7 +68,7 @@ async function loadProfile() {
   const p = bag[PROFILE_KEY];
   if (p) {
     $("env").value = p.envId || "govcloud_il2";
-    $("experience").value = p.experience || "victoria";
+    $("experience").value = p.experience || "classic";
     $("stack").value = p.stack || "";
     $("feature").value = p.feature || "search-api";
     $("ipVersion").value = p.ipVersion || "v4";
@@ -246,7 +246,7 @@ function wireTabs() {
 
 let confirmHandler = null;
 
-function openModal({ title, warnings, subnets, curl, confirmLabel, danger, onConfirm }) {
+function openModal({ title, warnings, subnets, curl, confirmLabel, danger, challenge, onConfirm }) {
   $("modalTitle").textContent = title;
   const body = $("modalBody");
   body.innerHTML = "";
@@ -288,6 +288,30 @@ function openModal({ title, warnings, subnets, curl, confirmLabel, danger, onCon
   confirmBtn.className = `btn ${danger ? "btn--danger" : "btn--primary"}`;
   confirmHandler = onConfirm;
 
+  // Type-to-confirm challenge for destructive actions: the confirm button
+  // stays disabled until the operator types the challenge word exactly.
+  confirmBtn.disabled = Boolean(challenge);
+  if (challenge) {
+    const wrap = document.createElement("label");
+    wrap.className = "field";
+    wrap.append(`Type ${challenge} to confirm`);
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = challenge;
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    input.setAttribute("aria-label", `Type ${challenge} to enable the ${confirmLabel} button`);
+    input.addEventListener("input", () => {
+      confirmBtn.disabled = input.value.trim() !== challenge;
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !confirmBtn.disabled && confirmHandler) confirmHandler();
+    });
+    wrap.appendChild(input);
+    body.appendChild(wrap);
+    setTimeout(() => input.focus(), 0);
+  }
+
   $("modal").classList.remove("hidden");
 }
 
@@ -314,6 +338,7 @@ function confirmRemove(subnets) {
     curl: buildCurl({ ...p, method: "DELETE", subnets }),
     confirmLabel: `Remove ${subnets.length}`,
     danger: true,
+    challenge: "DELETE",
     onConfirm: async () => {
       closeModal();
       setStatus($("connStatus"), "Removing…", "info");

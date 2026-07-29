@@ -386,9 +386,13 @@
           </div>
           <div class="code-block code-block--wrap">curl -X DELETE 'https://admin.splunkcloudgc.com/...' \
 --data '{"subnets":["52.24.108.7/32"]}'</div>
+          <label class="field">
+            Type DELETE to confirm
+            <input type="text" placeholder="DELETE" autocomplete="off" spellcheck="false" />
+          </label>
           <div class="row modal__actions row--end">
             <button class="btn btn--ghost">Cancel</button>
-            <button class="btn btn--danger">Remove 1</button>
+            <button class="btn btn--danger" disabled>Remove 1</button>
           </div>
         </div>
       </div>
