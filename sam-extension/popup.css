@@ -16,3 +16,16 @@ body {
   max-height: var(--popup-max-height);
   overflow-y: auto;
 }
+
+/* Windowed mode (popup.html?windowed=1, via the footer's "Open in window").
+   The action popup cannot be resized by the user — Chrome sizes it to content
+   and caps it at 800×600 — so this mode hosts the same page in a real window
+   where resizing works. The layout turns fluid: full width up to a readable
+   maximum, centred, with natural document scrolling and a taller list. */
+.windowed body {
+  width: auto;
+  max-width: 720px;
+  margin: 0 auto;
+  max-height: none;
+  --list-max-height: 60vh;
+}

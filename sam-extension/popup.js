@@ -31,7 +31,9 @@ function profile() {
     experience: $("experience").value,
     stack: $("stack").value.trim(),
     feature: $("feature").value,
-    ipVersion: $("ipVersion").value,
+    // The UI manages IPv4 lists only. The v6 endpoints and validation remain
+    // in acs.js, so re-exposing a selector is a UI-only change.
+    ipVersion: "v4",
   };
 }
 
@@ -71,7 +73,6 @@ async function loadProfile() {
     $("experience").value = p.experience || "classic";
     $("stack").value = p.stack || "";
     $("feature").value = p.feature || "search-api";
-    $("ipVersion").value = p.ipVersion || "v4";
   }
   applyEnvChrome();
   applyFeatureNote();
@@ -206,18 +207,22 @@ function renderList(subnets) {
   listLoaded = true;
 }
 
-async function loadList(silent = false) {
+// statusEl overrides where progress and errors are reported. The default is
+// the IP panel's own status line; Save & Test passes the Connection panel's,
+// since that is where the operator is looking during a connection test.
+async function loadList(silent = false, statusEl) {
+  const status = statusEl || $("listStatus");
   const btn = $("loadList");
   btn.disabled = true;
   btn.classList.add("is-loading");
-  if (!silent) setStatus($("connStatus"), "Loading allow list…", "info");
+  if (!silent) setStatus(status, "Loading allow list…", "info");
 
   const res = await callAcs("GET", []);
   btn.disabled = false;
   btn.classList.remove("is-loading");
 
   if (!res || !res.ok) {
-    setStatus($("connStatus"), res ? res.error : "No response from service worker.", "err");
+    setStatus(status, res ? res.error : "No response from service worker.", "err");
     invalidateList();
     await refreshLog();
     return false;
@@ -225,7 +230,7 @@ async function loadList(silent = false) {
 
   renderList(res.data && res.data.subnets);
   const f = featureById(profile().feature);
-  setStatus($("connStatus"), `Loaded ${f.label} allow list in ${res.ms}ms.`, "ok");
+  setStatus(status, `Loaded ${f.label} allow list in ${res.ms}ms.`, "ok");
   await refreshLog();
   return true;
 }
@@ -387,10 +392,10 @@ function confirmRemove(subnets) {
     challenge: "DELETE",
     onConfirm: async () => {
       closeModal();
-      setStatus($("connStatus"), "Removing…", "info");
+      setStatus($("listStatus"), "Removing…", "info");
       const res = await callAcs("DELETE", subnets);
       if (!res.ok) {
-        setStatus($("connStatus"), res.error, "err");
+        setStatus($("listStatus"), res.error, "err");
         await refreshLog();
         return;
       }
@@ -398,7 +403,7 @@ function confirmRemove(subnets) {
       const ok = await loadList(true);
       if (ok) {
         setStatus(
-          $("connStatus"),
+          $("listStatus"),
           `Removed ${subnets.length} subnet(s). ${remainingCount} remaining — verified by re-read.`,
           "ok"
         );
@@ -417,18 +422,18 @@ function confirmAdd() {
 
   // Validation failures block the request entirely — nothing is sent to ACS.
   if (errors.length) {
-    setStatus($("connStatus"), errors.join("  •  "), "err");
+    setStatus($("listStatus"), errors.join("  •  "), "err");
     return;
   }
   if (!valid.length) {
-    setStatus($("connStatus"), "Enter at least one subnet.", "err");
+    setStatus($("listStatus"), "Enter at least one subnet.", "err");
     return;
   }
 
   const dupes = valid.filter((s) => currentList.includes(s));
   const fresh = valid.filter((s) => !currentList.includes(s));
   if (!fresh.length) {
-    setStatus($("connStatus"), "Those subnets are already on the allow list.", "info");
+    setStatus($("listStatus"), "Those subnets are already on the allow list.", "info");
     return;
   }
 
@@ -450,10 +455,10 @@ function confirmAdd() {
     danger: false,
     onConfirm: async () => {
       closeModal();
-      setStatus($("connStatus"), "Adding…", "info");
+      setStatus($("listStatus"), "Adding…", "info");
       const res = await callAcs("POST", fresh);
       if (!res.ok) {
-        setStatus($("connStatus"), res.error, "err");
+        setStatus($("listStatus"), res.error, "err");
         await refreshLog();
         return;
       }
@@ -462,7 +467,7 @@ function confirmAdd() {
       if (ok) {
         const landed = fresh.filter((s) => currentList.includes(s));
         setStatus(
-          $("connStatus"),
+          $("listStatus"),
           landed.length === fresh.length
             ? `Added ${fresh.length} subnet(s) — verified present on re-read.`
             : `ACS accepted the request, but only ${landed.length}/${fresh.length} appear on re-read. Check the list.`,
@@ -556,6 +561,30 @@ async function init() {
   const ver = (manifest && manifest.version) || "dev";
   $("version").textContent = /^\d/.test(ver) ? `v${ver}` : ver;
 
+  // Windowed mode: same page, hosted in a resizable window. The token stays
+  // in the worker either way — this only changes which surface shows the UI.
+  if (new URLSearchParams(location.search).has("windowed")) {
+    document.documentElement.classList.add("windowed");
+    $("openWindow").classList.add("hidden");
+  }
+  $("openWindow").addEventListener("click", () => {
+    const qs = new URLSearchParams(location.search);
+    qs.set("windowed", "1");
+    const rel = `popup.html?${qs}`;
+    if (chrome.windows && chrome.windows.create) {
+      chrome.windows.create({
+        url: chrome.runtime.getURL(rel),
+        type: "popup",
+        width: 680,
+        height: 860,
+      });
+      window.close(); // the action popup has served its purpose
+    } else {
+      // Dev harness — no chrome.windows; a plain window keeps the layout testable.
+      window.open(rel, "sam-windowed", "width=680,height=860");
+    }
+  });
+
   await loadProfile();
   await refreshLog();
 
@@ -570,14 +599,6 @@ async function init() {
   $("feature").addEventListener("change", async () => {
     applyFeatureNote();
     invalidateList();
-    refreshCurlIfVisible();
-    await saveProfile();
-  });
-
-  $("ipVersion").addEventListener("change", async () => {
-    invalidateList();
-    $("addInput").placeholder =
-      $("ipVersion").value === "v6" ? "2600:1f14:a3c::/48" : "52.24.108.7/32, 34.210.15.0/24";
     refreshCurlIfVisible();
     await saveProfile();
   });
@@ -627,7 +648,7 @@ async function init() {
     await saveProfile();
     updateConnSummary();
     setStatus($("connStatus"), "Testing connection…", "info");
-    const ok = await loadList(true);
+    const ok = await loadList(true, $("connStatus"));
     if (ok) collapseConn(true);
   });
 

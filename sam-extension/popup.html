@@ -53,10 +53,9 @@
         </label>
 
         <label class="field">
-          Stack
+          Stack Name
           <input id="stack" type="text" placeholder="csms-2io6tw-47150" spellcheck="false" autocomplete="off" />
         </label>
-        <p class="field__hint">The URL prefix of the deployment, not the full hostname.</p>
 
         <div class="field__labelrow">
           <label class="field__label" for="token">API Token (JWT)</label>
@@ -94,7 +93,7 @@
           </div>
         </div>
 
-        <div class="row">
+        <div class="row row--actions">
           <button id="saveConn" class="btn btn--primary">Save &amp; Test</button>
           <button id="clearToken" class="btn btn--ghost">Clear token</button>
         </div>
@@ -106,24 +105,15 @@
     <section class="panel">
       <div class="panel__head panel__head--static">IP Allow List</div>
       <div class="panel__body">
-        <div class="row">
-          <label class="field row__grow">
-            Feature
-            <select id="feature">
-              <option value="search-api">Search API (:8089)</option>
-              <option value="search-ui">Search UI (Splunk Web)</option>
-              <option value="hec">HTTP Event Collector</option>
-              <option value="s2s">Forwarders (S2S)</option>
-            </select>
-          </label>
-          <label class="field row__narrow">
-            IP
-            <select id="ipVersion">
-              <option value="v4">IPv4</option>
-              <option value="v6">IPv6</option>
-            </select>
-          </label>
-        </div>
+        <label class="field">
+          Feature
+          <select id="feature">
+            <option value="search-api">Search API (:8089)</option>
+            <option value="search-ui">Search UI (Splunk Web)</option>
+            <option value="hec">HTTP Event Collector</option>
+            <option value="s2s">Forwarders (S2S)</option>
+          </select>
+        </label>
         <p class="field__hint" id="featureNote"></p>
 
         <button id="loadList" class="btn btn--primary btn--full">Load allow list</button>
@@ -186,6 +176,11 @@
             <ul id="subnetListDel" class="item-list"></ul>
           </div>
         </div>
+
+        <!-- IP-list operations report here, not in the (often collapsed)
+             Connection panel — validation rejections must be visible where
+             the operator is working. -->
+        <div id="listStatus" class="status" role="status" aria-live="polite"></div>
       </div>
     </section>
 
@@ -214,6 +209,9 @@
     <div class="footer">
       <a id="docPorts" class="footer__link" href="#" target="_blank" rel="noreferrer">Feature / port reference</a>
       <a id="docUsage" class="footer__link" href="#" target="_blank" rel="noreferrer">ACS usage</a>
+      <button id="openWindow" class="footer__btn" type="button" title="Open SAM in a resizable window">
+        Open in window ↗
+      </button>
       <span id="version" class="footer__version"></span>
     </div>
 

@@ -204,11 +204,14 @@ and slightly different padding.
 `role="status"` and `aria-live="polite"` so screen readers announce results
 without stealing focus.
 
-**Known issue:** the popup's only status line lives inside the Connection
-panel, which auto-collapses after a successful connection. Validation failures
-from the IP Allow List panel therefore write to an element the operator cannot
-see, and the interface appears to do nothing. The `.toast` component was built
-to fix this; the wiring has not been done.
+Each panel that reports outcomes owns a status line: the Connection panel for
+connection and token concerns, the IP Allow List panel for list operations —
+so a subnet validation rejection appears directly under the form that caused
+it, never inside a collapsed panel elsewhere. (An earlier revision had exactly
+that bug: the popup's only status line lived in the auto-collapsing Connection
+panel, and IP validation failures were invisible. A toast was considered and
+rejected — validation errors are actionable, and per the toast's own contract
+anything actionable belongs in a status line that does not disappear.)
 
 ### Item list, Table, Tabs
 
@@ -263,8 +266,9 @@ equally visible replacement. Status changes are announced via `aria-live`.
 Colour is never the sole carrier of meaning — status text is prefixed by words,
 and the environment badge states "GOVCLOUD IL2" rather than relying on violet.
 
-Two gaps remain, both documented above: the modal does not trap focus, and the
-status line can render inside a collapsed panel.
+One gap remains, documented above: the modal does not trap focus. (The other
+long-standing gap — status messages rendering inside a collapsed panel — was
+closed by giving each reporting panel its own status line.)
 
 ## Changing the system
 

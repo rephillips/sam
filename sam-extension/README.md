@@ -14,8 +14,9 @@ Reads and writes the ACS IP allow list for a stack, replacing the curl runbook:
 | Add subnets | `POST` | same, body `{"subnets": [...]}` |
 | Remove subnets | `DELETE` | same, body `{"subnets": [...]}` |
 
-IPv6 uses the `ipallowlists-v6` suffix. Feature types are `search-api`,
-`search-ui`, `hec`, and `s2s`.
+Feature types are `search-api`, `search-ui`, `hec`, and `s2s`. The UI manages
+IPv4 lists only; the IPv6 plumbing (`ipallowlists-v6` routing and v6
+validation) remains in `acs.js`, so re-exposing it is a UI-only change.
 
 ## Environment routing
 

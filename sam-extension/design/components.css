@@ -46,6 +46,9 @@ body {
 }
 .row--center { align-items: center; }
 .row--end { justify-content: flex-end; }
+/* An action row (Save, Cancel…) gets air above it, separating the commit
+   point from the fields it commits. */
+.row--actions { margin-top: var(--space-7); }
 .row__grow { flex: 1; }
 .row__narrow { width: 96px; }
 
@@ -611,6 +614,19 @@ textarea::placeholder { color: var(--text-faint); }
   text-decoration: none;
 }
 .footer__link:hover {
+  color: var(--accent-hi);
+  text-decoration: underline;
+}
+/* A footer action that is a button, dressed as a footer link. */
+.footer__btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+}
+.footer__btn:hover {
   color: var(--accent-hi);
   text-decoration: underline;
 }
