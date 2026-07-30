@@ -58,6 +58,12 @@
   --amber-500: #d9a441;
   --amber-200: #ecc57a;
 
+  /* Ember — the hot tip of the burning fuse. Decorative and confined to that
+     one component; it is not an intent colour and carries no status meaning. */
+  --ember-600: #e5461d;
+  --ember-500: #ff6a2a;
+  --ember-400: #ffa04d;
+
   /* Violet — reserved exclusively for FedRAMP / GovCloud signalling.
      Never use violet for ordinary emphasis; it is a compliance marker. */
   --violet-500: #7b5cff;
@@ -156,10 +162,18 @@
   --fuse-warn: var(--warn);
   --fuse-spent: var(--line);
   --fuse-core: var(--panel);
+  /* The burning point: cord behind it, ember just before the tip, and the
+     hottest colour at the tip itself. */
+  --fuse-ember: var(--ember-500);
+  --fuse-tip: var(--ember-400);
+  --fuse-tip-deep: var(--ember-600);
+  /* Stencil for the ring mask — a shape, not a design colour. */
+  --mask-solid: black;
   /* Runtime state, written by popup.js as the token burns down: the fraction
      of life left (1 → 0) and the hue the lit arc currently uses. */
   --fuse-progress: 1;
   --fuse-hue: var(--fuse-lit);
+  --fuse-angle: calc(var(--fuse-progress) * 360deg);
 
   /* focus — one ring everywhere, never removed without replacement */
   --focus: var(--green-400);
@@ -239,6 +253,7 @@
   --dur-spin: 700ms;    /* one revolution of a button spinner */
   --dur-shimmer: 1.4s;  /* one pass of a skeleton sweep */
   --dur-boom: 620ms;    /* the fuse's burst when the token expires */
+  --dur-spark: 900ms;   /* one flicker cycle of the fuse's burning tip */
   --ease-standard: cubic-bezier(0.2, 0, 0.2, 1);
 
   --z-sticky: 5;
@@ -259,5 +274,6 @@
     --dur-fast: 0ms;
     --dur-med: 0ms;
     --dur-boom: 0ms;
+    --dur-spark: 0ms;
   }
 }

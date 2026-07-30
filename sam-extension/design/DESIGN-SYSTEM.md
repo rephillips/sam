@@ -235,6 +235,23 @@ switch, wired in `popup.js` with `role="tablist"`, `aria-selected`, a roving
 Visible focus comes from the global `:focus-visible` rule, so tabs need no
 focus style of their own.
 
+### Token fuse
+
+`.fuse` wraps the countdown badge in a burning fuse: a conic gradient whose
+lit arc is the fraction of the token's life remaining, so one full turn is the
+whole lifetime. `popup.js` writes `--fuse-progress` (1 → 0); everything else is
+CSS. The cord carries the accent hue, switching to `--fuse-warn` near the end
+(`.fuse--warn`), and the last few degrees before the burn line heat through
+`--fuse-tip-deep` → `--fuse-ember` → `--fuse-tip`. A blurred, irregularly
+flickering copy of just that tip (`::before`, masked to the ring band) is the
+spark. At zero, `.fuse--boom` fires one burst and the spark is extinguished.
+
+The ember colours are the one place in the system where colour is decorative
+rather than semantic — they say "this is burning", not "this is a status".
+They are confined to this component and must not leak into intent tokens.
+Every animation here runs off `--dur-spark` / `--dur-boom`, so
+`prefers-reduced-motion` stops the flicker and the burst from one place.
+
 ### Toast
 
 Transient confirmation, fixed to the bottom of the popup. Use it only for an

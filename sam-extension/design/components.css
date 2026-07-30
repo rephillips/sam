@@ -108,32 +108,82 @@ body {
 .fuse {
   --fuse-progress: 1;
   --fuse-hue: var(--fuse-lit);
+  --fuse-angle: calc(var(--fuse-progress) * 360deg);
   position: relative;
   display: inline-block;
   padding: 2px; /* ring thickness */
   border-radius: calc(var(--radius-sm) + 2px);
+  /* Unburnt cord, then the ember heating up, then the hottest point right at
+     the burn line, then spent cord behind it. */
   background: conic-gradient(
-    var(--fuse-hue) calc(var(--fuse-progress) * 360deg),
+    var(--fuse-hue) calc(var(--fuse-angle) - 26deg),
+    var(--fuse-tip-deep) calc(var(--fuse-angle) - 12deg),
+    var(--fuse-ember) calc(var(--fuse-angle) - 4deg),
+    var(--fuse-tip) var(--fuse-angle),
     var(--fuse-spent) 0
   );
 }
 .fuse--warn { --fuse-hue: var(--fuse-warn); }
-/* The chip sits on an opaque core so only the ring shows through. */
+/* The chip sits on an opaque core so only the ring shows through, and above
+   the spark layer so the glow never washes over the digits. */
 .fuse .badge {
+  position: relative;
+  z-index: 1;
   display: block;
   background: var(--fuse-core);
   border-color: transparent;
+}
+
+/* The spark: a blurred copy of just the burning tip, masked to the ring so it
+   reads as heat coming off the cord, flickering irregularly like a real fuse. */
+.fuse::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 3px;
+  background: conic-gradient(
+    transparent calc(var(--fuse-angle) - 16deg),
+    var(--fuse-ember) calc(var(--fuse-angle) - 5deg),
+    var(--fuse-tip) var(--fuse-angle),
+    transparent 0
+  );
+  /* Keep only the ring band — without this the conic wedge would sweep
+     across the middle of the chip. */
+  mask: linear-gradient(var(--mask-solid) 0 0) content-box,
+    linear-gradient(var(--mask-solid) 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(var(--mask-solid) 0 0) content-box,
+    linear-gradient(var(--mask-solid) 0 0);
+  -webkit-mask-composite: xor;
+  filter: blur(2px);
+  opacity: 0.85;
+  animation: sam-fuse-spark var(--dur-spark) var(--ease-standard) infinite;
+  pointer-events: none;
+}
+@keyframes sam-fuse-spark {
+  0% { opacity: 0.55; }
+  12% { opacity: 1; }
+  24% { opacity: 0.45; }
+  39% { opacity: 0.95; }
+  53% { opacity: 0.6; }
+  68% { opacity: 1; }
+  81% { opacity: 0.5; }
+  100% { opacity: 0.8; }
 }
 /* The burst: one expanding flash of the fuse's own hue. */
 .fuse--boom::after {
   content: "";
   position: absolute;
   inset: -6px;
+  z-index: 2;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--fuse-hue), transparent 70%);
+  background: radial-gradient(circle, var(--fuse-tip), var(--fuse-ember) 45%, transparent 70%);
   animation: sam-boom var(--dur-boom) var(--ease-standard) forwards;
   pointer-events: none;
 }
+/* The spark dies with the cord. */
+.fuse--boom::before { animation: none; opacity: 0; }
 @keyframes sam-boom {
   from { transform: scale(0.5); opacity: 0.9; }
   to { transform: scale(2.1); opacity: 0; }
