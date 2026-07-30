@@ -240,11 +240,43 @@
                 <span class="code-chip">/32</span> for a single address. Removing one
                 asks you to type <strong>DELETE</strong> first. Every change shows the
                 exact subnets and the equivalent curl, then re-reads the list to confirm
-                it landed.
+                it landed. If you add more subnets later, ACS appends them to the
+                existing ranges. It does not overwrite what is already on the list.
               </p>
             </div>
           </li>
         </ol>
+
+        <div class="callout callout--warn">
+          <strong>Note:</strong> ACS does not support IP allow list management on
+          FedRAMP High environments. To modify the allow list you must contact
+          Splunk Support.
+        </div>
+
+        <div class="callout callout--info">
+          <div class="callout__title">Requirements</div>
+          <p class="callout__lead">To configure IP allow lists using the ACS API:</p>
+          <ul class="callout__steps">
+            <li>
+              Your role must have the capabilities required to access the ACS API
+              endpoint. The <span class="code-chip">sc_admin</span> role has all
+              required capabilities by default. See
+              <a id="docCaps" class="link" href="#" target="_blank" rel="noreferrer">Manage
+              ACS API access with capabilities</a>.
+            </li>
+            <li>You must have Splunk Cloud Platform version 8.0.2007 or higher.</li>
+            <li>
+              Your deployment must have one or more separate search heads or a search
+              head cluster. ACS is not supported on single instance deployments.
+            </li>
+            <li>
+              Configuring IP allow lists on premium search heads requires search head
+              targeting. See
+              <a id="docShTargeting" class="link" href="#" target="_blank" rel="noreferrer">Target
+              a specific search head for ACS operations</a>.
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
 

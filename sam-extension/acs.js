@@ -116,6 +116,11 @@ export const ACS_USAGE_URL =
 // Where the latest packaged build comes from. Points at the releases page
 // rather than the repo root: the built zip is a release asset, not committed.
 export const REPO_URL = "https://github.com/rephillips/sam/releases/latest";
+// Prerequisites documented on the How to tab.
+export const ACS_CAPABILITIES_URL =
+  "https://help.splunk.com/en/splunk-cloud-platform/administer/admin-config-service-manual/10.5.2605/using-the-admin-config-service-acs--api/manage-acs-api-access-with-capabilities";
+export const ACS_SH_TARGETING_URL =
+  "https://help.splunk.com/en/splunk-cloud-platform/administer/admin-config-service-manual/10.5.2605/using-the-admin-config-service-acs--api/target-a-specific-search-head-for-acs-operations";
 export const KCS_ARTICLE_URL =
   "https://splunk.my.site.com/customer/s/article/Update-IP-Allowlist-for-Splunk-Cloud-FedRAMP-Moderate-IL2-stacks-with-ACS-API";
 

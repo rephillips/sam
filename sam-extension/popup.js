@@ -9,6 +9,8 @@ import {
   ACS_USAGE_URL,
   KCS_ARTICLE_URL,
   REPO_URL,
+  ACS_CAPABILITIES_URL,
+  ACS_SH_TARGETING_URL,
 } from "./acs.js";
 
 const $ = (id) => document.getElementById(id);
@@ -668,6 +670,8 @@ async function refreshLog() {
 async function init() {
   $("docUsage").href = ACS_USAGE_URL;
   $("docKcs").href = KCS_ARTICLE_URL;
+  $("docCaps").href = ACS_CAPABILITIES_URL;
+  $("docShTargeting").href = ACS_SH_TARGETING_URL;
 
   // Version comes from the manifest at runtime, so the footer can never
   // disagree with the build actually installed.
