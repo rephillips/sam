@@ -732,6 +732,14 @@ async function init() {
 
   wireTabs();
 
+  const openAbout = (show) => $("aboutModal").classList.toggle("hidden", !show);
+  $("aboutVersion").textContent = `Version ${$("version").textContent}`;
+  $("aboutBtn").addEventListener("click", () => openAbout(true));
+  $("aboutClose").addEventListener("click", () => openAbout(false));
+  $("aboutModal").addEventListener("click", (e) => {
+    if (e.target === $("aboutModal")) openAbout(false);
+  });
+
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg && msg.type === "tokenCleared") onTokenCleared(msg.reason);
   });
@@ -756,7 +764,9 @@ async function init() {
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !$("modal").classList.contains("hidden")) closeModal();
+    if (e.key !== "Escape") return;
+    if (!$("modal").classList.contains("hidden")) closeModal();
+    else if (!$("aboutModal").classList.contains("hidden")) openAbout(false);
   });
 }
 

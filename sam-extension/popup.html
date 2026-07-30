@@ -203,7 +203,35 @@
       </div>
     </div>
 
+    <!-- ── About ───────────────────────────────────────────────── -->
+    <div id="aboutModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+      <div class="modal__card">
+        <h2 id="aboutTitle" class="modal__title">About Splunk ACS Helper</h2>
+        <p class="callout__lead">
+          Manages Splunk Cloud IP allow lists through the Admin Config Service (ACS):
+          view, add, and remove subnets for every ACS feature across GovCloud IL2 and
+          Commercial stacks, production or staging.
+        </p>
+        <p class="callout__lead">
+          It replaces the curl runbook without hiding it — every write is confirmed
+          against the exact subnets affected, verified by an automatic re-read, logged
+          with its equivalent command, and every subnet is checked as public, routable
+          space before any request leaves the browser. The API token is held in session
+          memory only and self-destructs on its own timer.
+        </p>
+        <p class="field__hint">
+          Developer: Rob Phillips ·
+          <a class="link" href="mailto:robphi@cisco.com">robphi@cisco.com</a>
+        </p>
+        <p class="field__hint" id="aboutVersion"></p>
+        <div class="row modal__actions row--end">
+          <button id="aboutClose" class="btn btn--ghost">Close</button>
+        </div>
+      </div>
+    </div>
+
     <div class="footer">
+      <button id="aboutBtn" class="footer__btn" type="button">About</button>
       <a id="docUsage" class="footer__link" href="#" target="_blank" rel="noreferrer">ACS Usage</a>
       <a id="docKcs" class="footer__link" href="#" target="_blank" rel="noreferrer">KCS Article</a>
       <button id="openWindow" class="footer__btn" type="button" title="Open SAM in a resizable window">
