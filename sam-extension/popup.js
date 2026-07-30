@@ -123,12 +123,13 @@ let timerInterval = null;
 function stopTokenTimer() {
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = null;
-  $("tokenTimer").classList.add("hidden");
+  $("timerRow").classList.add("hidden");
 }
 
 function startTokenTimer(expiresAt) {
   stopTokenTimer();
   if (!expiresAt) return;
+  $("timerRow").classList.remove("hidden");
   const chip = $("tokenTimer");
 
   const tick = async () => {
@@ -492,9 +493,19 @@ async function refreshLog() {
     ul.appendChild(li);
     return;
   }
+  const fmtTime = (ts) => {
+    const d = new Date(ts);
+    const p = (n) => String(n).padStart(2, "0");
+    return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  };
+
   for (const e of res.log) {
     const li = document.createElement("li");
     li.className = "log__row";
+    const when = document.createElement("span");
+    when.className = "log__time";
+    when.textContent = e.ts ? fmtTime(e.ts) : "";
+    li.appendChild(when);
     const m = document.createElement("span");
     m.className = "log__method";
     m.textContent = e.method;

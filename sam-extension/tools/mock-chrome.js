@@ -134,7 +134,8 @@
   /* ── request log ─────────────────────────────────────────────────────── */
   const log = [];
   function record(method, url, status, ms, curl) {
-    log.unshift({ method, url, status, ms, curl });
+    // Mirror the worker's log shape, including the timestamp.
+    log.unshift({ ts: Date.now(), method, url, status, ms, curl });
     if (log.length > 25) log.pop();
   }
 

@@ -16,11 +16,18 @@
       </div>
       <div class="topbar__badges">
         <span id="envBadge" class="badge badge--gov">GOVCLOUD IL2</span>
-        <span
-          id="tokenTimer"
-          class="badge badge--accent hidden"
-          title="Time until the API token self-destructs. Save the token again to restart the clock."
-        ></span>
+        <div id="timerRow" class="topbar__timerrow hidden">
+          <span
+            id="tokenTimer"
+            class="badge badge--accent"
+            title="Time until the saved API token self-destructs (60 minutes after save). At zero, requests fail until a token is saved again."
+          ></span>
+          <span
+            class="topbar__timerhelp"
+            title="The API token self-destructs when this countdown reaches zero — 60 minutes after it was saved, no matter what. Re-save the token to restart the clock. Locking the screen clears it immediately."
+            aria-hidden="true"
+          >ⓘ</span>
+        </div>
       </div>
     </header>
 

@@ -94,6 +94,18 @@ body {
   gap: var(--space-2);
   flex-shrink: 0;
 }
+.topbar__timerrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+/* The countdown's explainer glyph. Hover carries the detail; the glyph
+   only signals that there is something to hover. */
+.topbar__timerhelp {
+  color: var(--text-faint);
+  font-size: var(--fs-xs);
+  cursor: help;
+}
 .topbar__sub {
   margin: 0;
   font-size: var(--fs-xs);
@@ -555,6 +567,11 @@ textarea::placeholder { color: var(--text-faint); }
   color: var(--muted);
   display: flex;
   gap: var(--space-3);
+}
+.log__time {
+  color: var(--text-faint);
+  width: 58px;
+  flex-shrink: 0;
 }
 .log__method {
   font-weight: var(--fw-bold);
