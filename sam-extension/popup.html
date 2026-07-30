@@ -206,37 +206,41 @@
         <ol class="steps">
           <li class="step">
             <div>
+              <div class="step__title">Get an API token</div>
+              <p class="step__body">
+                On the stack's <strong>ad hoc search head</strong>, go to
+                <span class="code-chip">Settings</span> →
+                <span class="code-chip">Tokens</span> →
+                <span class="code-chip">New Token</span> and create one. Copy it
+                immediately and store it somewhere secure, because it cannot be viewed
+                again once the dialog closes. The token needs admin capability on the
+                stack to change allow lists.
+              </p>
+            </div>
+          </li>
+          <li class="step">
+            <div>
               <div class="step__title">Connect to the stack</div>
               <p class="step__body">
-                Pick the environment (production or staging, GovCloud IL2 or Commercial)
-                and enter the stack name. Generate an API token on that stack's ad hoc
-                search head under Settings → Tokens → New Token, paste it in, and choose
-                Save &amp; Test. The token is held in session memory only and burns down
-                on the timer in the top bar.
+                Pick the environment (production or staging, GovCloud IL2 or Commercial),
+                enter the stack name, paste the token, and choose
+                <strong>Save &amp; Test</strong>. The token is held in session memory only
+                and burns down on the timer in the top bar, so save it again when the
+                fuse runs out.
               </p>
             </div>
           </li>
           <li class="step">
             <div>
-              <div class="step__title">View the current allow list</div>
+              <div class="step__title">View, add, or remove subnets</div>
               <p class="step__body">
-                Choose the ACS feature you are working on, then select
-                <strong>View current allow list</strong>. The View tab names the feature
-                above the rows so there is no doubt which list you are reading, and
-                <strong>Show curl</strong> gives you the equivalent GET command.
-              </p>
-            </div>
-          </li>
-          <li class="step">
-            <div>
-              <div class="step__title">Add or remove subnets</div>
-              <p class="step__body">
-                Use the Add tab for new subnets in CIDR notation. The prefix length is
-                required, so <span class="code-chip">/32</span> for a single address, and private or reserved
-                space is rejected before anything is sent. Use the Delete tab to remove
-                one, which asks you to type <strong>DELETE</strong> first. Every change
-                shows the exact subnets and equivalent curl, then re-reads the list to
-                confirm it landed.
+                Choose the ACS feature, then select
+                <strong>View current allow list</strong>. Add new subnets in CIDR
+                notation, including the prefix length, so
+                <span class="code-chip">/32</span> for a single address. Removing one
+                asks you to type <strong>DELETE</strong> first. Every change shows the
+                exact subnets and the equivalent curl, then re-reads the list to confirm
+                it landed.
               </p>
             </div>
           </li>
