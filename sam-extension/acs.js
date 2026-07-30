@@ -372,16 +372,24 @@ export function validateIpv4Cidr(input, { requirePublic = true } = {}) {
     }
   }
 
-  // A bare address is treated as a single host (/32), which is what ACS expects.
-  let prefix = 32;
-  if (prefixRaw !== undefined) {
-    if (!/^\d{1,2}$/.test(prefixRaw)) {
-      return { ok: false, error: `"${raw}" has a malformed prefix length.` };
-    }
-    prefix = Number(prefixRaw);
-    if (prefix > 32) {
-      return { ok: false, error: `"${raw}" has prefix /${prefix} — IPv4 maximum is /32.` };
-    }
+  // The prefix length is mandatory. Inferring /32 from a bare address would
+  // silently decide the size of a network boundary change on the operator's
+  // behalf — the difference between one host and a whole range is exactly
+  // what they must state explicitly.
+  if (prefixRaw === undefined) {
+    return {
+      ok: false,
+      error:
+        `"${raw}" is missing a prefix length — write it as CIDR. ` +
+        `For this single address that is ${addr}/32.`,
+    };
+  }
+  if (!/^\d{1,2}$/.test(prefixRaw)) {
+    return { ok: false, error: `"${raw}" has a malformed prefix length.` };
+  }
+  const prefix = Number(prefixRaw);
+  if (prefix > 32) {
+    return { ok: false, error: `"${raw}" has prefix /${prefix} — IPv4 maximum is /32.` };
   }
 
   const warnings = [];
@@ -425,15 +433,21 @@ export function validateIpv6Cidr(input, { requirePublic = true } = {}) {
     return { ok: false, error: `"${raw}" is not a valid IPv6 address — expected 8 groups or "::".` };
   }
 
-  let prefix = 128;
-  if (prefixRaw !== undefined) {
-    if (!/^\d{1,3}$/.test(prefixRaw)) {
-      return { ok: false, error: `"${raw}" has a malformed prefix length.` };
-    }
-    prefix = Number(prefixRaw);
-    if (prefix > 128) {
-      return { ok: false, error: `"${raw}" has prefix /${prefix} — IPv6 maximum is /128.` };
-    }
+  // Mandatory here too, for the same reason as IPv4.
+  if (prefixRaw === undefined) {
+    return {
+      ok: false,
+      error:
+        `"${raw}" is missing a prefix length — write it as CIDR. ` +
+        `For this single address that is ${addr}/128.`,
+    };
+  }
+  if (!/^\d{1,3}$/.test(prefixRaw)) {
+    return { ok: false, error: `"${raw}" has a malformed prefix length.` };
+  }
+  const prefix = Number(prefixRaw);
+  if (prefix > 128) {
+    return { ok: false, error: `"${raw}" has prefix /${prefix} — IPv6 maximum is /128.` };
   }
 
   const warnings = [];

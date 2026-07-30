@@ -32,7 +32,6 @@ function rejects(input, mustMention) {
 
 /* ── public IPv4 accepted ───────────────────────────────────────── */
 accepts("52.24.108.7/32", "52.24.108.7/32");
-accepts("52.24.108.7", "52.24.108.7/32");        // bare host → /32
 accepts("34.210.15.0/24", "34.210.15.0/24");
 accepts("8.8.8.8/32", "8.8.8.8/32");
 accepts("1.1.1.0/24", "1.1.1.0/24");
@@ -67,6 +66,21 @@ ok("172.15.0.0/16 is public", validateIpv4Cidr("172.15.0.0/16").ok);
 /* ── malformed IPv4 ─────────────────────────────────────────────── */
 rejects("1.2.3", "four octets");
 rejects("1.2.3.4.5", "four octets");
+/* ── the prefix length is mandatory ─────────────────────────────── */
+// A bare address must not be silently promoted to /32: the operator has to
+// state the size of the boundary change themselves.
+rejects("52.24.108.7", "missing a prefix length");
+rejects("52.24.108.7", "52.24.108.7/32");        // error suggests the fix
+rejects("8.8.8.8", "missing a prefix length");
+ok("bare address is rejected in a batch", (() => {
+  const r = parseSubnetList("8.8.8.8, 1.1.1.0/24", "v4");
+  return r.errors.length === 1 && r.valid.length === 1 && r.valid[0] === "1.1.1.0/24";
+})());
+ok("bare IPv6 is rejected too", (() => {
+  const r = validateIpv6Cidr("2600:1f14:a3c::");
+  return !r.ok && r.error.includes("missing a prefix length") && r.error.includes("/128");
+})());
+
 rejects("256.1.1.1/32", "out of range");
 rejects("1.2.3.4/33", "maximum is /32");
 rejects("01.2.3.4/32", "leading zero");
@@ -87,7 +101,7 @@ function v6bad(input, mustMention) {
 
 v6ok("2600:1f14:a3c::/48", "2600:1f14:a3c::/48");
 v6ok("2001:4860:4860::8888/128", "2001:4860:4860::8888/128");
-v6ok("2600:1f14:a3c::", "2600:1f14:a3c::/128");
+v6ok("2600:1f14:a3c::/128", "2600:1f14:a3c::/128");
 v6bad("fe80::1/64", "Link-local");
 v6bad("fc00::/7", "Unique local");
 v6bad("fd12:3456::/32", "Unique local");   // fd.. is inside fc00::/7
@@ -100,7 +114,7 @@ v6bad("2600::1/129", "maximum is /128");
 v6bad("2600:::1", "not a valid IPv6");
 
 /* ── batch parsing ──────────────────────────────────────────────── */
-const batch = parseSubnetList("52.24.108.7/32, 10.0.0.5/32\n8.8.8.8", "v4");
+const batch = parseSubnetList("52.24.108.7/32, 10.0.0.5/32\n8.8.8.8/32", "v4");
 ok("batch keeps valid entries", batch.valid.length === 2, JSON.stringify(batch.valid));
 ok("batch reports the private one", batch.errors.length === 1, JSON.stringify(batch.errors));
 

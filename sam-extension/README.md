@@ -73,6 +73,11 @@ catches **partial overlaps**. `10.0.0.0/7` spans both private `10.x` and public
 `11.x` space and is rejected with an explanation, where a naive prefix check
 would let it through. `0.0.0.0/0` and `::/0` are rejected outright.
 
+**CIDR notation is mandatory.** A bare address like `52.24.108.7` is rejected
+rather than assumed to be `/32`: the difference between one host and a whole
+range is the size of the boundary change, and the operator has to state it.
+The error names the fix (`52.24.108.7/32`).
+
 Other checks: octet range and leading-zero rejection, prefix length bounds,
 malformed IPv6 (`2600:::1`, stray colons, multiple `::`), de-duplication, and
 host-bit normalization — `34.210.15.7/24` is corrected to `34.210.15.0/24` with

@@ -156,8 +156,10 @@
               <textarea id="addInput" rows="2" placeholder="52.24.108.7/32, 34.210.15.0/24" spellcheck="false"></textarea>
             </label>
             <p class="field__hint">
-              Must be public, routable address space. Private (RFC 1918), loopback,
-              link-local, CGNAT, and documentation ranges are rejected before any request is sent.
+              CIDR notation required — a prefix length such as
+              <span class="code-chip">/32</span> for a single address. Must be public,
+              routable space: private (RFC 1918), loopback, link-local, CGNAT, and
+              documentation ranges are rejected before any request is sent.
             </p>
             <button id="addBtn" class="btn btn--primary btn--full">Add to allow list</button>
           </div>
