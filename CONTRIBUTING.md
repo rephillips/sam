@@ -12,7 +12,24 @@ All code lives in `sam-extension/`. Repo: https://github.com/rephillips/sam.
   commit with a plain descriptive message, push to `main`.
 - Version bumps (`npm version X --no-git-tag-version` + sed the manifest)
   happen when the user asks for a build; rebuild with `npm run package` AFTER
-  bumping so the zip's manifest carries the new version.
+  bumping so the zip's manifest carries the new version. Never rebuild without
+  bumping — two different zips carrying the same version is the one thing the
+  footer's version display cannot help with.
+
+## Releases
+
+The installable zip is gitignored, so GitHub Releases are the distribution
+path. Cut one with a versioned asset name:
+
+```
+cp sam-extension.zip /tmp/splunk-acs-helper-X.Y.Z.zip
+gh release create vX.Y.Z "/tmp/splunk-acs-helper-X.Y.Z.zip" --title "Splunk ACS Helper X.Y.Z" --notes "..."
+```
+
+The in-app About link points at `/releases/latest`, which follows the newest
+release automatically — it never needs editing. Order matters: land any code
+change first, bump, rebuild, THEN cut the release, so the released zip
+contains the shipped code rather than the previous build.
 
 ## Build gates — run before every commit
 
@@ -83,6 +100,14 @@ Scenarios: `popup.html?scenario=fresh|populated|empty|error|slow`, `&reset=1`
 to clear state, `&ttl=<seconds>` to watch the token countdown expire quickly,
 `&windowed=1` for the fluid windowed layout. The harness footer version reads
 "dev" on purpose. Verify UI changes in the Browser pane before committing.
+
+**The harness mocks the service worker**, so anything that lives in
+`background.js` — the idle/screen-lock clear, `chrome.alarms`, sender
+validation — cannot be proven locally. Console helpers stand in where they can
+(`samSimulateLock()` fires the lock path), but worker behaviour is the one
+class of change that needs a real load-unpacked smoke test before you claim it
+works. This has already bitten once: a screen lock cleared the token while an
+open view kept its countdown burning, because nothing notified the view.
 
 ## Environments & features (acs.js is the single source of truth)
 
