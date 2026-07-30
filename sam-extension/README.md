@@ -95,12 +95,15 @@ a notice rather than being silently sent.
   `GET` for the current environment, stack, feature, and IP version and updates
   live as those change. All curl output uses a placeholder token — the real
   token is never rendered.
+- **Open in window** (footer) hosts the same page in a resizable window — the
+  action popup itself is capped at 800×600 by Chrome. Windowed mode is fluid up
+  to a readable 720px; token custody is identical in both surfaces.
 - **Activity log** of the session's requests — method, path, status, latency.
 
 ## Getting a token
 
-The Connection panel has a **"? How do I get one"** disclosure next to the token
-field (auto-expanded on first run, and available as a hover tooltip on the input
+The Connection panel has an **ⓘ info toggle** next to the token field
+(auto-expanded on first run, and available as a hover tooltip on the input
 itself). It documents the procedure:
 
 On the Splunk Cloud stack **ad hoc search head**:
