@@ -2,8 +2,8 @@
 
 A Chrome (Manifest V3) extension for Splunk Cloud ACS administration. Internal
 codename **SAM**, which the source tree and tooling still use. This first
-version covers **IP allow list management**, built against GovCloud IL2 as the
-primary target, with commercial supported by the same code path.
+version covers **IP allow list management**, built against FedRAMP Moderate /
+IL2 as the primary target, with commercial supported by the same code path.
 
 ## What it does
 
@@ -34,14 +34,15 @@ and v6 validation) remains in `acs.js`, so re-exposing it is a UI-only change.
 
 The Environment selector picks the ACS host:
 
-- **GovCloud IL2 (FedRAMP Moderate)** → `https://admin.splunkcloudgc.com`
-- **GovCloud IL2 - Staging** → `https://staging.admin.splunkcloudgc.com`
-- **Commercial** → `https://admin.splunk.com`
+- **FedRAMP Moderate / IL2 - Production** → `https://admin.splunkcloudgc.com`
+- **FedRAMP Moderate / IL2 - Staging** → `https://staging.admin.splunkcloudgc.com`
+- **Commercial - Production** → `https://admin.splunk.com`
 - **Commercial - Staging** → `https://staging.admin.splunk.com`
 
-GovCloud is the default and is visually distinguished (purple badge plus a
-banner) so it is never ambiguous which boundary you are operating in. Staging
-environments carry a `· STAGING` badge suffix.
+FedRAMP Moderate / IL2 - Production is the default and is visually
+distinguished (violet badge plus a banner) so it is never ambiguous which
+boundary you are operating in. Every badge names its tier, so production and
+staging can never be confused at a glance.
 
 **Staging vs dev stacks:** ACS works with staging stacks, with the same API signature and a
 staging host (the ACS CLI equivalent is `--server=https://staging.admin.splunk.com`).

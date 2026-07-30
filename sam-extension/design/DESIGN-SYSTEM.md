@@ -292,7 +292,8 @@ checked and all pass.
 Focus is visible on every interactive element and is never removed without an
 equally visible replacement. Status changes are announced via `aria-live`.
 Colour is never the sole carrier of meaning — status text is prefixed by words,
-and the environment badge states "GOVCLOUD IL2" rather than relying on violet.
+and the environment badge names the boundary in words ("IL2 · PRODUCTION")
+rather than relying on violet.
 
 One gap remains, documented above: the modal does not trap focus. (The other
 long-standing gap — status messages rendering inside a collapsed panel — was
