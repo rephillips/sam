@@ -80,6 +80,19 @@ body {
   font-size: var(--fs-xl);
   font-weight: var(--fw-semibold);
   letter-spacing: 0.5px;
+  /* The product name never wraps or truncates; when space runs out the
+     badge column yields by stacking instead. */
+  white-space: nowrap;
+}
+/* Badges live in a right-aligned column: one badge sits exactly where it
+   always did, and when the token countdown joins it the pair stack instead
+   of squeezing the title onto two lines. */
+.topbar__badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  flex-shrink: 0;
 }
 .topbar__sub {
   margin: 0;
