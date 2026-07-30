@@ -1,6 +1,7 @@
-# SAM — Splunk API Management
+# Splunk ACS Helper
 
-A Chrome (Manifest V3) extension for Splunk Cloud ACS administration. This first
+A Chrome (Manifest V3) extension for Splunk Cloud ACS administration — internal
+codename **SAM**, which the source tree and tooling still use. This first
 version covers **IP allow list management**, built against GovCloud IL2 as the
 primary target, with commercial supported by the same code path.
 

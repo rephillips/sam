@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "SAM — Splunk API Management",
+  "name": "Splunk ACS Helper",
   "version": "0.4.1",
   "description": "Splunk Cloud ACS admin from the browser. MVP: GovCloud IL2 IP allow list management.",
   "permissions": ["storage", "alarms", "idle"],
@@ -22,7 +22,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "SAM — Splunk API Management",
+    "default_title": "Splunk ACS Helper",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
