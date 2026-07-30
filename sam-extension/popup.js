@@ -97,9 +97,6 @@ async function loadProfile() {
     startTokenTimer(res.expiresAt, res.ttlMs);
   } else if (p && p.stack) {
     setStatus($("connStatus"), "Stack saved. Enter your API token to continue.", "info");
-  } else {
-    // First run — point at the token help rather than making them hunt.
-    setStatus($("connStatus"), "Hover ⓘ next to API Token for how to generate one.", "info");
   }
 }
 
