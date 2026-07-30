@@ -229,10 +229,21 @@
         broadcast({ type: "tokenCleared", reason: "manual" });
         return { ok: true };
 
-      case "curlWithToken": {
+      // The real worker copies via an offscreen document so the token never
+      // reaches the page. There is no offscreen API here, so the harness does
+      // the substitution and the write itself. The token is a dev fake, and
+      // the popup sees the same {ok, withToken} shape either way.
+      case "copyCurl": {
         const t = liveToken();
-        if (!t) return { ok: false, error: "No API token in session." };
-        return { ok: true, curl: String(msg.curl || "").split(PLACEHOLDER_TOKEN).join(t) };
+        const text = String(msg.curl || "");
+        const withToken = Boolean(t) && text.includes(PLACEHOLDER_TOKEN);
+        const payload = t ? text.split(PLACEHOLDER_TOKEN).join(t) : text;
+        try {
+          await navigator.clipboard.writeText(payload);
+          return { ok: true, withToken };
+        } catch (_) {
+          return { ok: false, reason: "write-failed" };
+        }
       }
 
       case "getLog":

@@ -1,5 +1,5 @@
 import {
-  ENVIRONMENTS,
+  environmentById,
   FEATURES,
   featureById,
   parseSubnetList,
@@ -39,7 +39,10 @@ function profile() {
 }
 
 function applyEnvChrome() {
-  const env = ENVIRONMENTS[$("env").value];
+  // A stored profile can name an environment that no longer exists, which
+  // leaves the select with no matching option. Fall back rather than throw
+  // during init.
+  const env = environmentById($("env").value) || environmentById("govcloud_il2");
   const badge = $("envBadge");
   badge.textContent = env.badge;
   badge.className = `badge ${env.restricted ? "badge--gov" : "badge--accent"}`;
@@ -59,7 +62,7 @@ function applyFeatureNote() {
 function updateConnSummary() {
   const p = profile();
   $("connSummary").textContent = p.stack
-    ? `${p.stack} · ${ENVIRONMENTS[p.envId].badge}`
+    ? `${p.stack} · ${(environmentById(p.envId) || { badge: "?" }).badge}`
     : "not configured";
 }
 
@@ -328,16 +331,22 @@ function makeCopyButton() {
 // credential never touches the DOM — what stays on screen is still redacted.
 // With no token in session there is nothing to substitute, so the redacted
 // form is copied and the button says so.
+// The worker owns this: it substitutes the token and writes to the clipboard
+// through an offscreen document, so the live credential never reaches this
+// page. All the popup learns is whether it worked. If the worker cannot reach
+// the clipboard, fall back to copying the redacted command from here, which
+// by definition carries only the placeholder.
 async function copyCurl(redactedCurl, btn) {
-  const res = await send({ type: "curlWithToken", curl: redactedCurl });
-  const runnable = res && res.ok && res.curl;
-  try {
-    await navigator.clipboard.writeText(runnable ? res.curl : redactedCurl);
-    paintCopyButton(btn, runnable ? "copied" : "plain");
-  } catch (_) {
-    // The clipboard can refuse (focus, permissions). Say so rather than
-    // leaving a button that appears to have done nothing.
-    paintCopyButton(btn, "failed");
+  const res = await send({ type: "copyCurl", curl: redactedCurl });
+  if (res && res.ok) {
+    paintCopyButton(btn, res.withToken ? "copied" : "plain");
+  } else {
+    try {
+      await navigator.clipboard.writeText(redactedCurl);
+      paintCopyButton(btn, "plain");
+    } catch (_) {
+      paintCopyButton(btn, "failed");
+    }
   }
   setTimeout(() => paintCopyButton(btn, "idle"), 1600);
 }

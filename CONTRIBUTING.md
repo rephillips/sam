@@ -80,11 +80,14 @@ If a contrast pair fails, the colour value is wrong — not the test.
   clears on screen lock (chrome.idle), and the worker refuses non-JWT-shaped
   values and non-extension message senders.
 - Every curl **rendered on screen** uses `CURL_PLACEHOLDER_TOKEN`, never the
-  real one. **Copy** is the one deliberate exception: the worker swaps in the
-  live token on the way to the clipboard (`curlWithToken`) so the pasted
-  command actually runs. The credential still never enters the DOM, the
-  activity log, or any displayed string — do not "simplify" this by rendering
-  the real token and copying from the DOM.
+  real one. **Copy** still yields a runnable command, but the substitution and
+  the clipboard write both happen in the worker and an offscreen document
+  (`copyCurl` -> `offscreen.html`); the popup gets back only `{ok, withToken}`.
+  Do not "simplify" this by returning the command to the page and copying from
+  there: that hands the live token to anything running in the popup context.
+- Look environments up with `environmentById()`, never `ENVIRONMENTS[id]`.
+  A bare index answers truthy for `__proto__` and `constructor`, slips past a
+  `if (!env)` guard, and leaves the request host undefined.
 - Subnets are validated locally (public, routable space only — integer-range
   checks in `acs.js`) before any request leaves the browser.
 - The dev harness mock must never be weaker than the real thing: token in an

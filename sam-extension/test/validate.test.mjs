@@ -160,6 +160,19 @@ ok(
       "https://admin.", "https://staging.admin."
     )
 );
+// Inherited Object.prototype keys must not pass as environments: a bare
+// ENVIRONMENTS[id] answers truthy for these and yields an undefined host.
+for (const proto of ["__proto__", "constructor", "toString"]) {
+  ok(`environment "${proto}" rejected`, (() => {
+    try {
+      buildIpAllowListUrl({ envId: proto, stack: "acme", feature: "acs", ipVersion: "v4" });
+      return false;
+    } catch (e) {
+      return e.message.includes("Unknown environment");
+    }
+  })());
+}
+
 ok("stack with braces rejected", (() => {
   try { buildIpAllowListUrl({ envId: "commercial", stack: "{stack}", feature: "s2s", ipVersion: "v4" }); return false; }
   catch (e) { return e.message.includes("looks invalid"); }

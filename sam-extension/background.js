@@ -5,7 +5,7 @@
 import {
   buildIpAllowListUrl,
   buildCurl,
-  ENVIRONMENTS,
+  environmentById,
   CURL_PLACEHOLDER_TOKEN,
 } from "./acs.js";
 
@@ -168,7 +168,7 @@ async function acsIpAllowList({ envId, stack, feature, ipVersion, method, subnet
 function humanizeError(status, data, envId) {
   const detail =
     (data && (data.message || data.error || (data.messages && data.messages[0]?.text))) || "";
-  const env = ENVIRONMENTS[envId];
+  const env = environmentById(envId);
 
   switch (status) {
     case 401:
@@ -184,6 +184,49 @@ function humanizeError(status, data, envId) {
       return `429 Rate limited — ACS is throttling. Wait a moment and retry. ${detail}`;
     default:
       return `${status} — ${detail || "Request failed."}`;
+  }
+}
+
+/* --------------------------- clipboard ---------------------------- */
+
+const OFFSCREEN_PATH = "offscreen.html";
+
+async function ensureOffscreen() {
+  try {
+    if (await chrome.offscreen.hasDocument()) return true;
+    await chrome.offscreen.createDocument({
+      url: OFFSCREEN_PATH,
+      reasons: ["CLIPBOARD"],
+      justification:
+        "Copy the equivalent curl command, which carries the API token, without exposing the token to an extension page.",
+    });
+    return true;
+  } catch (e) {
+    // A concurrent copy may have created it between the check and the call.
+    return /single offscreen/i.test(String(e && e.message));
+  }
+}
+
+// Substitutes the live token into the redacted command and copies it. Returns
+// only {ok, withToken} — never the command itself, and never the token.
+async function copyCurlToClipboard(redacted) {
+  const text = String(redacted || "");
+  const tok = await getToken();
+  const withToken = Boolean(tok) && text.includes(CURL_PLACEHOLDER_TOKEN);
+  const payload = tok ? text.split(CURL_PLACEHOLDER_TOKEN).join(tok) : text;
+
+  if (!chrome.offscreen || !(await ensureOffscreen())) {
+    return { ok: false, reason: "no-offscreen" };
+  }
+  try {
+    const res = await chrome.runtime.sendMessage({
+      target: "offscreen",
+      type: "offscreenCopy",
+      text: payload,
+    });
+    return res && res.ok ? { ok: true, withToken } : { ok: false, reason: "write-failed" };
+  } catch (_) {
+    return { ok: false, reason: "write-failed" };
   }
 }
 
@@ -232,22 +275,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "getLog":
           sendResponse({ ok: true, log: await getLog() });
           break;
-        // Runnable curl: swap the placeholder for the live token so an
-        // operator can paste a working command into a terminal. The popup
-        // sends the redacted string and writes the result straight to the
-        // clipboard — the credential is never rendered, stored, or logged.
-        case "curlWithToken": {
-          const tok = await getToken();
-          if (!tok) {
-            sendResponse({ ok: false, error: "No API token in session." });
-            break;
-          }
-          sendResponse({
-            ok: true,
-            curl: String(msg.curl || "").split(CURL_PLACEHOLDER_TOKEN).join(tok),
-          });
+        // Runnable curl. The popup sends the redacted command and gets back
+        // only a success flag: the substitution and the clipboard write both
+        // happen in contexts the worker owns, so the live token never returns
+        // to any extension page.
+        case "copyCurl":
+          sendResponse(await copyCurlToClipboard(msg.curl));
           break;
-        }
         default:
           sendResponse({ ok: false, error: `Unknown message type: ${msg.type}` });
       }

@@ -34,6 +34,7 @@ const EXCLUDE = [
 // exclusion list, so verify rather than assume.
 const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "manifest.json"), "utf8"));
 const required = ["popup.html", "popup.js", "popup.css", "acs.js", "background.js",
+  "offscreen.html", "offscreen.js",
   "design/tokens.css", "design/components.css"];
 
 fs.rmSync(OUT, { force: true });

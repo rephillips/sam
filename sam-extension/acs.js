@@ -148,12 +148,23 @@ export function featureById(id) {
 }
 
 /**
+ * Look up an environment by id without inheriting from Object.prototype.
+ * A bare `ENVIRONMENTS[id]` answers truthy for "__proto__" and "constructor",
+ * which slips past a `if (!env)` guard and leaves `env.host` undefined — and
+ * if Object.prototype were ever polluted, would point the token-bearing fetch
+ * at whatever host the polluter chose.
+ */
+export function environmentById(id) {
+  return Object.prototype.hasOwnProperty.call(ENVIRONMENTS, id) ? ENVIRONMENTS[id] : null;
+}
+
+/**
  * Build the ACS IP allow list URL.
  * IPv4: /{stack}/adminconfig/v2/access/{feature}/ipallowlists
  * IPv6: /{stack}/adminconfig/v2/access/{feature}/ipallowlists-v6
  */
 export function buildIpAllowListUrl({ envId, stack, feature, ipVersion }) {
-  const env = ENVIRONMENTS[envId];
+  const env = environmentById(envId);
   if (!env) throw new Error(`Unknown environment: ${envId}`);
 
   const cleanStack = String(stack || "").trim().toLowerCase();
@@ -557,7 +568,8 @@ export function assessAddition({ subnets, envId }) {
     );
   }
 
-  if (ENVIRONMENTS[envId] && ENVIRONMENTS[envId].restricted && broad.length) {
+  const env = environmentById(envId);
+  if (env && env.restricted && broad.length) {
     warnings.push(
       "Broad allow list entries in a FedRAMP/IL2 environment are likely to draw an audit finding."
     );

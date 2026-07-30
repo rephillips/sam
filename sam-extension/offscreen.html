@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SAM clipboard</title>
+  </head>
+  <body>
+    <!-- Never rendered. Exists so the service worker can write the equivalent
+         curl, which carries the live API token, to the clipboard without that
+         token ever reaching the popup. -->
+    <textarea id="sink" aria-hidden="true"></textarea>
+    <script src="offscreen.js"></script>
+  </body>
+</html>
