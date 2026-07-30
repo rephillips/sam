@@ -164,6 +164,9 @@
     "search-ui": "search-ui",
     hec: "hec",
     s2s: "s2s",
+    acs: "acs",
+    "idm-ui": "idm-ui",
+    "idm-api": "idm-api",
   };
 
   function urlFor(p) {

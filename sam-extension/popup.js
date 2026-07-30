@@ -47,7 +47,8 @@ function applyEnvChrome() {
 
 function applyFeatureNote() {
   const f = featureById($("feature").value);
-  $("featureNote").textContent = f ? `Opens port ${f.ports}. ${f.note}` : "";
+  // Some features (ACS itself) have no stack port to open.
+  $("featureNote").textContent = f ? (f.ports ? `Opens port ${f.ports}. ${f.note}` : f.note) : "";
 }
 
 function updateConnSummary() {

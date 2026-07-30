@@ -71,6 +71,33 @@ export const FEATURES = [
     note: "HEC ingest. Removing a subnet silently stops data from those senders.",
   },
   {
+    id: "acs",
+    label: "ACS (Admin Config Service)",
+    ports: null, // the service itself, not a stack port
+    risk: "high",
+    note:
+      "Access to the Admin Config Service itself — the API this extension uses. " +
+      "Removing your own subnet locks SAM and all ACS automation out of the stack. IPv4 only.",
+  },
+  {
+    id: "idm-ui",
+    label: "IDM UI",
+    ports: "443",
+    risk: "medium",
+    note:
+      "Browser access to the Inputs Data Manager UI in regulated environments. " +
+      "Removing your subnet blocks the IDM console.",
+  },
+  {
+    id: "idm-api",
+    label: "IDM API",
+    ports: "8089",
+    risk: "medium",
+    note:
+      "API access for add-ons that send data through the IDM to Splunk Cloud. " +
+      "Removing a subnet stops those add-ons.",
+  },
+  {
     id: "s2s",
     label: "Forwarders (S2S)",
     ports: "9997",

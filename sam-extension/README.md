@@ -14,9 +14,20 @@ Reads and writes the ACS IP allow list for a stack, replacing the curl runbook:
 | Add subnets | `POST` | same, body `{"subnets": [...]}` |
 | Remove subnets | `DELETE` | same, body `{"subnets": [...]}` |
 
-Feature types are `search-api`, `search-ui`, `hec`, and `s2s`. The UI manages
-IPv4 lists only; the IPv6 plumbing (`ipallowlists-v6` routing and v6
-validation) remains in `acs.js`, so re-exposing it is a UI-only change.
+Supported feature types:
+
+| Use case | Feature | Port | Description |
+| --- | --- | --- | --- |
+| ACS access | `acs` | none | Access for specified subnets to the Admin Config Service itself. IPv4 only. |
+| Search head API access | `search-api` | 8089 | Access to the search head API (automated interfaces). |
+| HEC ingestion | `hec` | 443 | Lets specified subnets send HTTP data to indexers. |
+| Indexer ingestion | `s2s` | 9997 | Lets subnets with UFs or HFs send data to indexers. |
+| SH UI access | `search-ui` | 80/443 | Explicit search head UI access in regulated environments. |
+| IDM UI access | `idm-ui` | 443 | Explicit IDM UI access in regulated environments. |
+| IDM API | `idm-api` | 8089 | Access for add-ons that send data via the IDM API. |
+
+The UI manages IPv4 lists only; the IPv6 plumbing (`ipallowlists-v6` routing
+and v6 validation) remains in `acs.js`, so re-exposing it is a UI-only change.
 
 ## Environment routing
 
