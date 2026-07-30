@@ -248,9 +248,16 @@
         </ol>
 
         <div class="callout callout--warn">
-          <strong>Note:</strong> ACS does not support IP allow list management on
-          FedRAMP High environments. To modify the allow list you must contact
-          Splunk Support.
+          <p style="margin: 0 0 var(--space-4)">
+            <strong>Allow lists apply stack-wide, not per instance.</strong> A change
+            affects every instance serving that feature on the stack, not just the one
+            you reached to make it.
+          </p>
+          <p style="margin: 0">
+            <strong>FedRAMP High is not supported.</strong> ACS does not manage IP
+            allow lists on FedRAMP High environments. To modify the allow list you
+            must contact Splunk Support.
+          </p>
         </div>
 
         <div class="callout callout--info">
