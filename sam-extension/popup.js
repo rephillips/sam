@@ -6,8 +6,8 @@ import {
   assessRemoval,
   assessAddition,
   buildCurl,
-  PORT_DOC_URL,
   ACS_USAGE_URL,
+  KCS_ARTICLE_URL,
 } from "./acs.js";
 
 const $ = (id) => document.getElementById(id);
@@ -593,8 +593,8 @@ async function refreshLog() {
 /* ------------------------------ wiring ------------------------------ */
 
 async function init() {
-  $("docPorts").href = PORT_DOC_URL;
   $("docUsage").href = ACS_USAGE_URL;
+  $("docKcs").href = KCS_ARTICLE_URL;
 
   // Version comes from the manifest at runtime, so the footer can never
   // disagree with the build actually installed.
