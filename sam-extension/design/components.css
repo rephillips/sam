@@ -746,14 +746,113 @@ textarea::placeholder { color: var(--text-faint); }
   max-height: 480px;
   overflow-y: auto;
 }
+/* Title row: the dismiss control is an × in the corner, never a button in the
+   action row — closing is not a choice the operator is being asked to make. */
+.modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
 .modal__title {
-  margin: 0 0 var(--space-5);
+  margin: 0;
   font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
 }
+.modal__close {
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  padding: 0 var(--space-2);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: var(--fs-lg);
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+.modal__close:hover { color: var(--text); }
 .modal__actions {
   justify-content: flex-end;
   margin-top: var(--space-8);
+}
+
+/* ==========================================================================
+   Copy button — icon-only, swaps to a tick on success
+   ========================================================================== */
+
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 0;
+  padding: var(--space-1);
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+.copy-btn:hover { color: var(--accent-hi); }
+.copy-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* ==========================================================================
+   Steps — numbered how-to cards
+   --------------------------------------------------------------------------
+   Ordered instructions where each step is a discrete action. Keep it to a
+   handful of steps: this is orientation, not documentation.
+   ========================================================================== */
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.step {
+  display: flex;
+  gap: var(--space-5);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-6);
+}
+/* The number is generated, so the markup carries no hand-typed ordinals. */
+.step::before {
+  counter-increment: step;
+  content: counter(step);
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-soft-line);
+  color: var(--accent-soft-fg);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step__title {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--space-2);
+}
+.step__body {
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-normal);
 }
 
 /* ==========================================================================
@@ -884,6 +983,13 @@ textarea::placeholder { color: var(--text-faint); }
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease-standard),
     border-color var(--dur-fast) var(--ease-standard);
+}
+/* Top-level section tabs sit outside any panel, so they carry the shared
+   gutter themselves and let the first panel's own border do the separating. */
+.tabs--top {
+  padding: 0 var(--gutter);
+  margin-bottom: 0;
+  background: var(--panel);
 }
 .tab:hover { color: var(--text); }
 .tab.is-active {

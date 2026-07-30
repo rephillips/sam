@@ -100,6 +100,7 @@ const PAIRS = [
   ["body text on app background",      "var(--text)",      "var(--bg)",       4.5],
   ["body text on panel",               "var(--text)",      "var(--panel)",    4.5],
   ["body text on raised panel",        "var(--text)",      "var(--panel-2)",  4.5],
+  ["how-to step body on its card",     "var(--muted)",     "var(--panel-2)",  4.5],
   ["muted text on app background",     "var(--muted)",     "var(--bg)",       4.5],
   ["muted text on panel",              "var(--muted)",     "var(--panel)",    4.5],
   ["hint text on app background",      "var(--text-faint)","var(--bg)",       4.5],

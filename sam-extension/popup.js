@@ -290,6 +290,39 @@ async function loadList(silent = false, statusEl) {
 
 /* ------------------------------ curl copy ------------------------------ */
 
+// Icon-only copy control: the familiar two-sheets glyph, swapping to a tick on
+// success. Inline SVG rather than an icon font or an image, so it inherits
+// currentColor and ships with no extra asset.
+const ICON_COPY =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<rect x="9" y="9" width="13" height="13" rx="2"/>' +
+  '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const ICON_TICK =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ' +
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<polyline points="20 6 9 17 4 12"/></svg>';
+
+function paintCopyButton(btn, state) {
+  const label = {
+    idle: "Copy curl command",
+    copied: "Copied, includes your token",
+    plain: "Copied. No token in session, so the command carries a placeholder",
+    failed: "Could not reach the clipboard. Select the command and copy it manually",
+  }[state];
+  btn.innerHTML = state === "copied" || state === "plain" ? ICON_TICK : ICON_COPY;
+  btn.title = label;
+  btn.setAttribute("aria-label", label);
+}
+
+function makeCopyButton() {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "copy-btn";
+  paintCopyButton(btn, "idle");
+  return btn;
+}
+
 // Copy a runnable command: the worker swaps the placeholder for the live
 // token on its way to the clipboard, so the pasted curl actually works. The
 // credential never touches the DOM — what stays on screen is still redacted.
@@ -298,9 +331,15 @@ async function loadList(silent = false, statusEl) {
 async function copyCurl(redactedCurl, btn) {
   const res = await send({ type: "curlWithToken", curl: redactedCurl });
   const runnable = res && res.ok && res.curl;
-  await navigator.clipboard.writeText(runnable ? res.curl : redactedCurl);
-  btn.textContent = runnable ? "Copied" : "Copied (no token)";
-  setTimeout(() => (btn.textContent = "Copy"), 1600);
+  try {
+    await navigator.clipboard.writeText(runnable ? res.curl : redactedCurl);
+    paintCopyButton(btn, runnable ? "copied" : "plain");
+  } catch (_) {
+    // The clipboard can refuse (focus, permissions). Say so rather than
+    // leaving a button that appears to have done nothing.
+    paintCopyButton(btn, "failed");
+  }
+  setTimeout(() => paintCopyButton(btn, "idle"), 1600);
 }
 
 /* --------------------------- curl preview --------------------------- */
@@ -330,35 +369,32 @@ function toggleCurlPreview(show) {
 
 /* ------------------------------ tabs ------------------------------ */
 
-const TABS = [
-  { tab: "tabView", pane: "paneView" },
-  { tab: "tabAdd", pane: "paneAdd" },
-  { tab: "tabDelete", pane: "paneDelete" },
-];
-
-function selectTab(index) {
-  TABS.forEach(({ tab, pane }, i) => {
-    const active = i === index;
-    $(tab).classList.toggle("is-active", active);
-    $(tab).setAttribute("aria-selected", String(active));
-    $(tab).tabIndex = active ? 0 : -1;
-    $(pane).classList.toggle("hidden", !active);
-  });
-}
-
 // role="tablist" + roving tabindex + arrow-key navigation, per the design
-// system's accessibility note on the tabs component.
-function wireTabs() {
-  TABS.forEach(({ tab }, i) => {
-    $(tab).addEventListener("click", () => selectTab(i));
+// system's accessibility note on the tabs component. Shared by the top-level
+// section tabs and the IP allow list's View/Add/Delete tabs.
+function wireTabs(pairs) {
+  const select = (index) => {
+    pairs.forEach(({ tab, pane }, i) => {
+      const active = i === index;
+      $(tab).classList.toggle("is-active", active);
+      $(tab).setAttribute("aria-selected", String(active));
+      $(tab).tabIndex = active ? 0 : -1;
+      $(pane).classList.toggle("hidden", !active);
+    });
+  };
+
+  pairs.forEach(({ tab }, i) => {
+    $(tab).addEventListener("click", () => select(i));
     $(tab).addEventListener("keydown", (e) => {
       if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
       e.preventDefault();
-      const next = (i + (e.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length;
-      selectTab(next);
-      $(TABS[next].tab).focus();
+      const next = (i + (e.key === "ArrowRight" ? 1 : pairs.length - 1)) % pairs.length;
+      select(next);
+      $(pairs[next].tab).focus();
     });
   });
+
+  return select;
 }
 
 /* ------------------------------ modal ------------------------------ */
@@ -386,9 +422,7 @@ function openModal({ title, warnings, subnets, curl, confirmLabel, danger, chall
   head.className = "code-block__head";
   const label = document.createElement("span");
   label.textContent = "Equivalent curl · Copy includes your token";
-  const copy = document.createElement("button");
-  copy.className = "link";
-  copy.textContent = "Copy";
+  const copy = makeCopyButton();
   copy.addEventListener("click", () => copyCurl(curl, copy));
   head.append(label, copy);
   body.appendChild(head);
@@ -603,9 +637,7 @@ async function refreshLog() {
       head.className = "code-block__head";
       const label = document.createElement("span");
       label.textContent = "Equivalent curl · Copy includes your token";
-      const copy = document.createElement("button");
-      copy.className = "link";
-      copy.textContent = "Copy";
+      const copy = makeCopyButton();
       copy.addEventListener("click", () => copyCurl(e.curl, copy));
       head.append(label, copy);
       const box = document.createElement("div");
@@ -731,7 +763,15 @@ async function init() {
     setStatus($("connStatus"), "Token cleared from session memory.", "info");
   });
 
-  wireTabs();
+  wireTabs([
+    { tab: "tabManage", pane: "paneManage" },
+    { tab: "tabHowTo", pane: "paneHowTo" },
+  ]);
+  wireTabs([
+    { tab: "tabView", pane: "paneView" },
+    { tab: "tabAdd", pane: "paneAdd" },
+    { tab: "tabDelete", pane: "paneDelete" },
+  ]);
 
   const openAbout = (show) => $("aboutModal").classList.toggle("hidden", !show);
   $("aboutVersion").textContent = `Version: ${$("version").textContent}`;
@@ -752,6 +792,7 @@ async function init() {
   });
 
   $("curlToggle").addEventListener("click", () => toggleCurlPreview());
+  paintCopyButton($("curlCopy"), "idle");
   $("curlCopy").addEventListener("click", () =>
     copyCurl($("curlBox").textContent, $("curlCopy"))
   );
@@ -760,6 +801,7 @@ async function init() {
   $("refresh").addEventListener("click", () => loadList());
   $("addBtn").addEventListener("click", confirmAdd);
   $("modalCancel").addEventListener("click", closeModal);
+  $("modalClose").addEventListener("click", closeModal);
   $("modalConfirm").addEventListener("click", () => confirmHandler && confirmHandler());
   $("modal").addEventListener("click", (e) => {
     if (e.target === $("modal")) closeModal();
