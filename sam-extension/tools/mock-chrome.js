@@ -43,6 +43,7 @@
     if (exp && Date.now() > exp) {
       memSession.removeItem("sam_token");
       memSession.removeItem("sam_token_expiry");
+      broadcast({ type: "tokenCleared", reason: "expired" });
       return null;
     }
     return t;
@@ -82,6 +83,22 @@
   }
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  /* ── worker → view broadcasts ────────────────────────────────────────── */
+  // The real worker pushes {type:"tokenCleared"} when a token dies early, so
+  // an open view can stop its countdown. Mirror that here, and expose
+  // window.samSimulateLock() to fire the screen-lock path on demand — the
+  // harness has no chrome.idle to trigger it for real.
+  const msgListeners = [];
+  function broadcast(message) {
+    for (const fn of msgListeners) {
+      try {
+        fn(message);
+      } catch (_) {
+        /* a broken listener must not stop the others */
+      }
+    }
+  }
 
   /* ── in-memory session store ─────────────────────────────────────────── */
   // Deliberately NOT sessionStorage: browsers persist sessionStorage to disk
@@ -209,6 +226,7 @@
       case "clearToken":
         memSession.removeItem("sam_token");
         memSession.removeItem("sam_token_expiry");
+        broadcast({ type: "tokenCleared", reason: "manual" });
         return { ok: true };
 
       case "curlWithToken": {
@@ -280,11 +298,22 @@
     },
     runtime: {
       sendMessage: (msg) => route(msg),
+      onMessage: { addListener: (fn) => msgListeners.push(fn) },
       // "dev" rather than a real number, so a harness tab can never be
       // mistaken for the installed extension.
       getManifest: () => ({ version: "dev" }),
       lastError: null,
     },
+  };
+
+  // Stand-in for chrome.idle's screen-lock event, which the harness has no
+  // way to raise: call samSimulateLock() from the console to kill the token
+  // the way a real lock does.
+  window.samSimulateLock = () => {
+    memSession.removeItem("sam_token");
+    memSession.removeItem("sam_token_expiry");
+    broadcast({ type: "tokenCleared", reason: "locked" });
+    return "token cleared as if the screen locked";
   };
 
   /* ── screenshot mode ─────────────────────────────────────────────────── */

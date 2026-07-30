@@ -47,18 +47,24 @@ async function getTokenExpiry() {
   return bag[TOKEN_EXPIRY_KEY] || null;
 }
 
-async function clearToken() {
+async function clearToken(reason = "manual") {
   await chrome.storage.session.remove([TOKEN_KEY, TOKEN_EXPIRY_KEY]);
   await chrome.alarms.clear(TOKEN_TTL_ALARM);
+  // Tell any open SAM view immediately. Without this a windowed view keeps a
+  // countdown burning for a token that no longer exists — the popup only
+  // re-checks on its own when the fuse reaches zero, which never happens if
+  // the token was killed early by a screen lock. Rejects when no view is
+  // open, which is the normal case.
+  chrome.runtime.sendMessage({ type: "tokenCleared", reason }).catch(() => {});
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === TOKEN_TTL_ALARM) clearToken();
+  if (alarm.name === TOKEN_TTL_ALARM) clearToken("expired");
 });
 
 // Walk-away protection: wipe the token the moment the OS session locks.
 chrome.idle.onStateChanged.addListener((state) => {
-  if (state === "locked") clearToken();
+  if (state === "locked") clearToken("locked");
 });
 
 /* ------------------------------ logging ------------------------------ */

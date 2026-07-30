@@ -671,6 +671,11 @@ textarea::placeholder { color: var(--text-faint); }
   color: var(--muted);
   margin-bottom: var(--space-3);
 }
+/* Names the feature the visible list belongs to. */
+.list-head__feature {
+  color: var(--text);
+  font-weight: var(--fw-semibold);
+}
 
 /* ==========================================================================
    Activity log

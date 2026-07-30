@@ -49,6 +49,10 @@ function applyFeatureNote() {
   const f = featureById($("feature").value);
   // Some features (ACS itself) have no stack port to open.
   $("featureNote").textContent = f ? (f.ports ? `Opens port ${f.ports}. ${f.note}` : f.note) : "";
+  // Name the feature on the button and on the View tab's header, so a loaded
+  // list can never be mistaken for a different feature's.
+  $("loadList").textContent = `View current allow list for ${f ? f.label : "this feature"}`;
+  $("listFeature").textContent = f ? f.label : "";
 }
 
 function updateConnSummary() {
@@ -136,6 +140,33 @@ function detonateFuse() {
     $("timerRow").classList.add("hidden");
     fuse.classList.remove("fuse--warn", "fuse--boom");
   }, 700);
+}
+
+const CLEAR_REASONS = {
+  locked: "Screen lock cleared the token. Save a token to continue.",
+  expired: "Token self-destructed. Save a token to continue.",
+  manual: "Token cleared from session memory.",
+};
+
+// The token can die while a view is open — a screen lock is the case the
+// countdown cannot predict. Snuff the fuse and say why.
+function onTokenCleared(reason) {
+  stopTokenTimer();
+  $("token").placeholder = "eyJhbGciOi...";
+  setStatus($("connStatus"), CLEAR_REASONS[reason] || CLEAR_REASONS.manual, "info");
+}
+
+// Belt and braces for the broadcast: re-read the worker's state whenever the
+// view regains focus, so a message missed while the worker slept cannot leave
+// a stale countdown on screen.
+async function syncTokenState() {
+  const res = await send({ type: "hasToken" });
+  if (!res) return;
+  if (!res.hasToken) {
+    if (timerInterval) onTokenCleared("locked");
+    return;
+  }
+  if (res.expiresAt) startTokenTimer(res.expiresAt, res.ttlMs);
 }
 
 function startTokenTimer(expiresAt, ttlMs) {
@@ -700,6 +731,15 @@ async function init() {
   });
 
   wireTabs();
+
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg && msg.type === "tokenCleared") onTokenCleared(msg.reason);
+  });
+  // A windowed view stays open across a lock, so re-verify on focus.
+  window.addEventListener("focus", syncTokenState);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) syncTokenState();
+  });
 
   $("curlToggle").addEventListener("click", () => toggleCurlPreview());
   $("curlCopy").addEventListener("click", () =>
