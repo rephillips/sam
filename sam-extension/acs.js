@@ -113,8 +113,9 @@ export const ACS_USAGE_URL =
   "https://docs.splunk.com/Documentation/SplunkCloud/latest/Config/ACSusage";
 // KCS article — the public customer-portal URL, so it resolves for anyone
 // rather than only for users signed into Splunk's internal Salesforce org.
-// Where the latest build comes from.
-export const REPO_URL = "https://github.com/rephillips/sam";
+// Where the latest packaged build comes from. Points at the releases page
+// rather than the repo root: the built zip is a release asset, not committed.
+export const REPO_URL = "https://github.com/rephillips/sam/releases/latest";
 export const KCS_ARTICLE_URL =
   "https://splunk.my.site.com/customer/s/article/Update-IP-Allowlist-for-Splunk-Cloud-FedRAMP-Moderate-IL2-stacks-with-ACS-API";
 
