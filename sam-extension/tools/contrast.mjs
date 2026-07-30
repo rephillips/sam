@@ -101,6 +101,13 @@ const PAIRS = [
   ["body text on panel",               "var(--text)",      "var(--panel)",    4.5],
   ["body text on raised panel",        "var(--text)",      "var(--panel-2)",  4.5],
   ["how-to step body on its card",     "var(--muted)",     "var(--panel-2)",  4.5],
+  // The top bar is a gradient; check the lighter end, which is the worst case.
+  ["splunk expiry on top bar",         "var(--text-faint)","var(--topbar-from)", 4.5],
+  ["splunk expiry hovered",            "var(--accent-hi)", "var(--topbar-from)", 4.5],
+  ["splunk expiry when past",          "var(--warn-fg)",   "var(--topbar-from)", 4.5],
+  ["staging tier, IL2, on panel",      "var(--env-staging-gov)", "var(--panel)", 4.5],
+  ["staging tier, commercial, panel",  "var(--env-staging-com)", "var(--panel)", 4.5],
+  ["production tier on panel",         "var(--env-prod)",       "var(--panel)", 4.5],
   ["muted text on app background",     "var(--muted)",     "var(--bg)",       4.5],
   ["muted text on panel",              "var(--muted)",     "var(--panel)",    4.5],
   ["hint text on app background",      "var(--text-faint)","var(--bg)",       4.5],

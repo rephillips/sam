@@ -62,10 +62,25 @@ function applyFeatureNote() {
 }
 
 function updateConnSummary() {
+  const el = $("connSummary");
   const p = profile();
-  $("connSummary").textContent = p.stack
-    ? `${p.stack} · ${(environmentById(p.envId) || { badge: "?" }).badge}`
-    : "not configured";
+  const env = environmentById(p.envId);
+  el.textContent = "";
+
+  if (!p.stack || !env) {
+    el.textContent = "not configured";
+    return;
+  }
+
+  // Boundary in plain text, tier in its own element so staging can carry its
+  // neon hue and production can glow.
+  el.append(`${p.stack} · ${env.boundary} · `);
+  const tier = document.createElement("span");
+  tier.textContent = env.tier;
+  tier.className = env.staging
+    ? `envtag ${env.restricted ? "envtag--staging-gov" : "envtag--staging-com"}`
+    : "envtag envtag--prod";
+  el.appendChild(tier);
 }
 
 function invalidateList() {
@@ -449,11 +464,9 @@ function openModal({ title, warnings, subnets, curl, confirmLabel, danger, chall
 
   const head = document.createElement("div");
   head.className = "code-block__head";
-  const label = document.createElement("span");
-  label.textContent = "Equivalent curl · Copy includes your token";
   const copy = makeCopyButton();
   copy.addEventListener("click", () => copyCurl(curl, copy));
-  head.append(label, copy);
+  head.appendChild(copy);
   body.appendChild(head);
 
   const box = document.createElement("div");
@@ -664,11 +677,9 @@ async function refreshLog() {
       detail.className = "log__detail hidden";
       const head = document.createElement("div");
       head.className = "code-block__head";
-      const label = document.createElement("span");
-      label.textContent = "Equivalent curl · Copy includes your token";
       const copy = makeCopyButton();
       copy.addEventListener("click", () => copyCurl(e.curl, copy));
-      head.append(label, copy);
+      head.appendChild(copy);
       const box = document.createElement("div");
       box.className = "code-block code-block--wrap";
       box.textContent = e.curl;

@@ -64,6 +64,12 @@
   --ember-500: #ff6a2a;
   --ember-400: #ffa04d;
 
+  /* Neon pair — the environment tier in the connection summary. Violet keeps
+     the FedRAMP association the rest of the system uses; blue is Commercial's
+     counterpart and carries that one meaning only. */
+  --neon-violet: #c07bff;
+  --neon-blue: #4fd2ff;
+
   /* Violet — reserved exclusively for FedRAMP / GovCloud signalling.
      Never use violet for ordinary emphasis; it is a compliance marker. */
   --violet-500: #7b5cff;
@@ -175,6 +181,11 @@
   --fuse-hue: var(--fuse-lit);
   --fuse-angle: calc(var(--fuse-progress) * 360deg);
 
+  /* Environment tier in the connection summary. */
+  --env-staging-gov: var(--neon-violet);
+  --env-staging-com: var(--neon-blue);
+  --env-prod: var(--text);
+
   /* focus — one ring everywhere, never removed without replacement */
   --focus: var(--green-400);
   --focus-ring: 0 0 0 2px rgba(94, 218, 160, 0.5);
@@ -254,6 +265,7 @@
   --dur-shimmer: 1.4s;  /* one pass of a skeleton sweep */
   --dur-boom: 620ms;    /* the fuse's burst when the token expires */
   --dur-spark: 900ms;   /* one flicker cycle of the fuse's burning tip */
+  --dur-pulse: 2.6s;    /* one breath of the production glow */
   --ease-standard: cubic-bezier(0.2, 0, 0.2, 1);
 
   --z-sticky: 5;
@@ -275,5 +287,6 @@
     --dur-med: 0ms;
     --dur-boom: 0ms;
     --dur-spark: 0ms;
+    --dur-pulse: 0ms;
   }
 }

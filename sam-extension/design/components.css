@@ -106,8 +106,16 @@ body {
   font-family: var(--font-mono);
   color: var(--text-faint);
   white-space: nowrap;
+  cursor: default;
+  transition: color var(--dur-fast) var(--ease-standard);
 }
-.topbar__exp--past { color: var(--warn-fg); }
+/* Deliberately quiet at rest, since it is reference rather than status.
+   Hover brings it up to the accent so the date is easy to read. */
+.topbar__exp:hover { color: var(--accent-hi); }
+/* An expired token stays amber on hover: green would contradict the warning
+   the colour exists to carry. */
+.topbar__exp--past,
+.topbar__exp--past:hover { color: var(--warn-fg); }
 
 /* ── Token fuse ────────────────────────────────────────────────────────
    The countdown's border is a burning fuse: a conic gradient whose lit arc
@@ -334,6 +342,23 @@ body {
   font-size: var(--fs-sm);
 }
 .panel__body { padding: var(--space-6) var(--gutter) var(--space-8); }
+
+/* ── Environment tier ──────────────────────────────────────────────────
+   Names the tier in the connection summary. Staging takes its boundary's
+   neon hue so the two are never mistaken for each other at a glance;
+   production instead breathes, because it is the one you want to notice
+   without it shouting. */
+.envtag { font-weight: var(--fw-semibold); }
+.envtag--staging-gov { color: var(--env-staging-gov); }
+.envtag--staging-com { color: var(--env-staging-com); }
+.envtag--prod {
+  color: var(--env-prod);
+  animation: sam-env-pulse var(--dur-pulse) var(--ease-standard) infinite;
+}
+@keyframes sam-env-pulse {
+  0%, 100% { text-shadow: none; }
+  50% { text-shadow: 0 0 6px currentColor; }
+}
 
 /* ==========================================================================
    Field — label, control, hint
@@ -796,6 +821,8 @@ textarea::placeholder { color: var(--text-faint); }
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Sits at the right edge of its head row whether or not a label precedes it. */
+  margin-left: auto;
   background: none;
   border: 0;
   padding: var(--space-1);
