@@ -123,7 +123,7 @@ with access explicitly pinned to trusted contexts.
 
 - Never written to `localStorage` or `chrome.storage.local`.
 - Never returned to the popup after it is saved.
-- **Self-destructs 5 minutes after save** — a fixed lifetime; no amount of
+- **Self-destructs 60 minutes after save** — a fixed lifetime; no amount of
   activity extends it. The countdown in the top bar is ringed by a **fuse**:
   one full turn of the ring is the token's whole life, burning down as it
   expires, turning amber for the last fifth and bursting at zero. Re-saving

@@ -109,9 +109,11 @@ function collapseConn(collapse) {
 // renders the remaining time in the top bar. The alarm in the worker is the
 // enforcement — this display is informational and self-corrects by re-asking
 // the worker when it reaches zero.
-// The fuse turns amber for the last fifth of the token's life, so the warning
-// scales with whatever lifetime the worker reports.
+// The fuse turns amber for the last fifth of the token's life, capped at five
+// minutes — proportional so a short test lifetime still warns, capped so a
+// full-length token is not amber for its final twelve minutes.
 const WARN_FRACTION = 0.2;
+const WARN_MAX_MS = 5 * 60 * 1000;
 // Sub-second ticks so the ring creeps rather than jumping a degree at a time.
 const TICK_MS = 250;
 let timerInterval = null;
@@ -165,7 +167,7 @@ function startTokenTimer(expiresAt, ttlMs) {
 
     const remaining = Math.min(left / total, 1);
     fuse.style.setProperty("--fuse-progress", remaining.toFixed(4));
-    const warn = remaining <= WARN_FRACTION;
+    const warn = left <= Math.min(total * WARN_FRACTION, WARN_MAX_MS);
     fuse.classList.toggle("fuse--warn", warn);
     chip.className = `badge ${warn ? "badge--warn" : "badge--accent"}`;
   };

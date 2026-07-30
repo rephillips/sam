@@ -14,7 +14,7 @@ const TOKEN_EXPIRY_KEY = "sam_token_expiry";
 const LOG_KEY = "sam_request_log";
 const MAX_LOG = 25;
 const TOKEN_TTL_ALARM = "sam_token_ttl";
-const TOKEN_TTL_MINUTES = 5;
+const TOKEN_TTL_MINUTES = 60;
 
 // Session storage is TRUSTED_CONTEXTS by default; state it explicitly so the
 // guarantee survives future drift (e.g. someone adding a content script).

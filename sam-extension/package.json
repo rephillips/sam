@@ -1,6 +1,6 @@
 {
   "name": "sam-extension",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "private": true,
   "description": "SAM — Splunk API Management browser extension",
   "type": "module",

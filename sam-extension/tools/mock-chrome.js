@@ -29,9 +29,10 @@
   const LATENCY = scenario === "slow" ? 2500 : 120;
   const FIXTURE_KEY = "sam_dev_fixtures";
 
-  // Token lifetime in seconds. Mirrors the worker's 5-minute self-destruct;
-  // override with &ttl=<seconds> to watch the fuse burn down quickly.
-  const TOKEN_TTL_S = Number(params.get("ttl")) > 0 ? Number(params.get("ttl")) : 300;
+  // Token lifetime in seconds. Mirrors the worker's 60-minute self-destruct;
+  // override with &ttl=<seconds> to watch the fuse burn down quickly
+  // (?ttl=20 burns a full ring, amber, and the burst in twenty seconds).
+  const TOKEN_TTL_S = Number(params.get("ttl")) > 0 ? Number(params.get("ttl")) : 3600;
 
   // Expired tokens are as good as absent — same behaviour as the worker's
   // alarm, enforced lazily at read time since the mock has no alarms.

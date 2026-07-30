@@ -57,7 +57,9 @@ If a contrast pair fails, the colour value is wrong — not the test.
 
 - The API token lives ONLY in the service worker's `chrome.storage.session`
   (never storage.local/localStorage, never returned to the popup — `hasToken`
-  is a boolean + expiry). It self-destructs 5 min after save (chrome.alarms),
+  is a boolean + expiry). It self-destructs 60 min after save (chrome.alarms;
+  test the fuse with the harness's `&ttl=<seconds>`, never by shipping a
+  shortened TTL),
   clears on screen lock (chrome.idle), and the worker refuses non-JWT-shaped
   values and non-extension message senders.
 - Every curl **rendered on screen** uses `CURL_PLACEHOLDER_TOKEN`, never the
