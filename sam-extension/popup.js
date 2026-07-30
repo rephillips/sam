@@ -88,21 +88,13 @@ async function loadProfile() {
   } else if (p && p.stack) {
     setStatus($("connStatus"), "Stack saved. Enter your API token to continue.", "info");
   } else {
-    // First run — open the token instructions rather than making them hunt.
-    toggleTokenHelp(true);
+    // First run — point at the token help rather than making them hunt.
+    setStatus($("connStatus"), "Hover ⓘ next to API Token for how to generate one.", "info");
   }
 }
 
 async function saveProfile() {
   await chrome.storage.local.set({ [PROFILE_KEY]: profile() });
-}
-
-function toggleTokenHelp(show) {
-  const help = $("tokenHelp");
-  const open = show === undefined ? help.classList.contains("hidden") : show;
-  help.classList.toggle("hidden", !open);
-  $("tokenHelpToggle").setAttribute("aria-expanded", String(open));
-  $("tokenHelpToggle").textContent = open ? "×" : "ⓘ";
 }
 
 function collapseConn(collapse) {
@@ -621,8 +613,6 @@ async function init() {
     refreshCurlIfVisible();
   });
 
-  $("tokenHelpToggle").addEventListener("click", () => toggleTokenHelp());
-
   $("connToggle").addEventListener("click", () =>
     collapseConn(!$("connBody").classList.contains("hidden"))
   );
@@ -647,7 +637,6 @@ async function init() {
       }
       $("token").value = "";
       $("token").placeholder = "•••••••• token in session";
-      toggleTokenHelp(false);
       const status = await send({ type: "hasToken" });
       if (status && status.expiresAt) startTokenTimer(status.expiresAt);
     } else {

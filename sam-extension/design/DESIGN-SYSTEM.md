@@ -183,6 +183,17 @@ underneath; `.field__labelrow` handles a label with a trailing action, like the
 token help toggle. Controls take `--line-strong` borders and show both a colour
 change and a ring on focus, so focus does not rely on colour alone.
 
+### Tooltip
+
+`.tip` + `data-tip`, usually on a `.tip-glyph` ⓘ button. Appears on **hover or
+keyboard focus only — never on click**; the trigger is a real `<button>` so Tab
+reaches it, and the popover is a CSS `::after` reading `data-tip`. Native
+`title` attributes are not used for anything essential: they are unreliable
+inside extension action popups, which is exactly where this UI lives. Keep the
+content to a few sentences — anything longer, or anything actionable, belongs
+in a callout or modal. Anchored to the trigger's right edge so it opens inward
+from the popup edge.
+
 ### Callout and Notice
 
 Both carry contextual messages, and they are not interchangeable. A **Notice**

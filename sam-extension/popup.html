@@ -22,11 +22,12 @@
             class="badge badge--accent"
             title="Time until the saved API token self-destructs (60 minutes after save). At zero, requests fail until a token is saved again."
           ></span>
-          <span
-            class="topbar__timerhelp"
-            title="The API token self-destructs when this countdown reaches zero — 60 minutes after it was saved, no matter what. Re-save the token to restart the clock. Locking the screen clears it immediately."
-            aria-hidden="true"
-          >ⓘ</span>
+          <button
+            type="button"
+            class="tip-glyph tip"
+            data-tip="The API token self-destructs when this countdown reaches zero — 60 minutes after it was saved, no matter what. Re-save the token to restart the clock. Locking the screen clears it immediately."
+            aria-label="What the token countdown means"
+          >ⓘ</button>
         </div>
       </div>
     </header>
@@ -69,13 +70,11 @@
         <div class="field__labelrow">
           <label class="field__label" for="token">API Token (JWT)</label>
           <button
-            id="tokenHelpToggle"
-            class="link"
             type="button"
-            aria-expanded="false"
-            aria-controls="tokenHelp"
-            aria-label="How do I get a token"
-            title="How to generate a bearer token on the Splunk Cloud search head"
+            id="tokenHelpTip"
+            class="tip-glyph tip"
+            data-tip="Generate on the stack's ad hoc search head: Settings → Tokens → New Token. Copy the token immediately and store it securely — it cannot be viewed again after the dialog closes."
+            aria-label="How to get an API token"
           >
             ⓘ
           </button>
@@ -86,21 +85,7 @@
           placeholder="eyJhbGciOi..."
           spellcheck="false"
           autocomplete="off"
-          title="Generate on the Splunk Cloud ad hoc search head: Settings → Tokens → New Token. Copy it immediately — it cannot be viewed again after the dialog closes."
         />
-
-        <div id="tokenHelp" class="callout callout--info hidden">
-          <div class="callout__title">Generate a bearer token</div>
-          <p class="callout__lead">On the Splunk Cloud stack <strong>ad hoc search head</strong>:</p>
-          <ol class="callout__steps">
-            <li>Go to <span class="code-chip">Settings</span> → <span class="code-chip">Tokens</span> → <span class="code-chip">New Token</span></li>
-            <li>Create the token. A long token string is generated.</li>
-            <li>Copy the token immediately and save it somewhere secure.</li>
-          </ol>
-          <div class="callout callout--warn callout--tight" style="margin-top: var(--space-5)">
-            The token will not be viewable again after you close the dialog box.
-          </div>
-        </div>
 
         <div class="row row--actions">
           <button id="saveConn" class="btn btn--primary">Save &amp; Test</button>

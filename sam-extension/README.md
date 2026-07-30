@@ -103,9 +103,8 @@ a notice rather than being silently sent.
 
 ## Getting a token
 
-The Connection panel has an **ⓘ info toggle** next to the token field
-(auto-expanded on first run, and available as a hover tooltip on the input
-itself). It documents the procedure:
+Hover the **ⓘ** next to the token field for the short version. The full
+procedure:
 
 On the Splunk Cloud stack **ad hoc search head**:
 
