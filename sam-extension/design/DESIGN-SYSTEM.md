@@ -50,7 +50,7 @@ production credential into.
 
 **The system covers what SAM needs and stops.** Table, tabs, toast, empty
 state, and skeleton exist because the ACS roadmap needs them. There is no
-grid system, no icon library, and no six-size button scale, because a 430px
+grid system, no icon library, and no six-size button scale, because a 560px
 popup will never use them and unused abstraction is a maintenance liability
 dressed as foresight.
 
