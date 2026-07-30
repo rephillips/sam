@@ -383,8 +383,8 @@ export function validateIpv4Cidr(input, { requirePublic = true } = {}) {
     return {
       ok: false,
       error:
-        `"${raw}" is missing a prefix length — write it as CIDR. ` +
-        `For this single address that is ${addr}/32.`,
+        `"${raw}" is missing a prefix length. Write it as CIDR: ` +
+        `for this single address that is ${addr}/32.`,
     };
   }
   if (!/^\d{1,2}$/.test(prefixRaw)) {
@@ -441,8 +441,8 @@ export function validateIpv6Cidr(input, { requirePublic = true } = {}) {
     return {
       ok: false,
       error:
-        `"${raw}" is missing a prefix length — write it as CIDR. ` +
-        `For this single address that is ${addr}/128.`,
+        `"${raw}" is missing a prefix length. Write it as CIDR: ` +
+        `for this single address that is ${addr}/128.`,
     };
   }
   if (!/^\d{1,3}$/.test(prefixRaw)) {

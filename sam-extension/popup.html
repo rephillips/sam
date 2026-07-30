@@ -78,7 +78,7 @@
             type="button"
             id="tokenHelpTip"
             class="tip-glyph tip"
-            data-tip="Generate on the stack's ad hoc search head: Settings → Tokens → New Token. Copy the token immediately and store it securely — it cannot be viewed again after the dialog closes."
+            data-tip="Generate on the stack's ad hoc search head: Settings → Tokens → New Token. Copy the token immediately and store it securely, because it cannot be viewed again after the dialog closes."
             aria-label="How to get an API token"
           >
             ⓘ
@@ -163,7 +163,7 @@
               <textarea id="addInput" rows="2" placeholder="52.24.108.7/32, 34.210.15.0/24" spellcheck="false"></textarea>
             </label>
             <p class="field__hint">
-              CIDR notation required — a prefix length such as
+              CIDR notation required, including the prefix length: use
               <span class="code-chip">/32</span> for a single address. Must be public,
               routable space: private (RFC 1918), loopback, link-local, CGNAT, and
               documentation ranges are rejected before any request is sent.
@@ -231,8 +231,8 @@
             <div>
               <div class="step__title">Add or remove subnets</div>
               <p class="step__body">
-                Use the Add tab for new subnets in CIDR notation. A prefix such as
-                <span class="code-chip">/32</span> is required, and private or reserved
+                Use the Add tab for new subnets in CIDR notation. The prefix length is
+                required, so <span class="code-chip">/32</span> for a single address, and private or reserved
                 space is rejected before anything is sent. Use the Delete tab to remove
                 one, which asks you to type <strong>DELETE</strong> first. Every change
                 shows the exact subnets and equivalent curl, then re-reads the list to

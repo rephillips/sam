@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Splunk ACS Helper",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Splunk Cloud ACS admin from the browser. MVP: GovCloud IL2 IP allow list management.",
   "permissions": ["storage", "alarms", "idle"],
   "host_permissions": [
