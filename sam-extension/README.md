@@ -94,8 +94,10 @@ a notice rather than being silently sent.
   be pasted into a ticket, runbook, or change record. The read path has its own
   **"Show curl"** toggle on the IP Allow List panel, which reveals the equivalent
   `GET` for the current environment, stack, feature, and IP version and updates
-  live as those change. All curl output uses a placeholder token — the real
-  token is never rendered.
+  live as those change. Curl is always **displayed** with a placeholder token,
+  so screenshots, screen shares, and tickets never leak the credential —
+  **Copy** puts the real token in, so the command you paste into a terminal
+  actually runs. Treat a copied command as a live credential.
 - **Open in window** (footer) hosts the same page in a resizable window — the
   action popup itself is capped at 800×600 by Chrome. Windowed mode is fluid up
   to a readable 720px; token custody is identical in both surfaces.
@@ -121,10 +123,11 @@ with access explicitly pinned to trusted contexts.
 
 - Never written to `localStorage` or `chrome.storage.local`.
 - Never returned to the popup after it is saved.
-- **Self-destructs 60 minutes after save** — a fixed lifetime; no amount of
-  activity extends it. A countdown badge in the top bar shows the time
-  remaining and turns amber for the final five minutes. Re-saving the token
-  restarts the clock.
+- **Self-destructs 5 minutes after save** — a fixed lifetime; no amount of
+  activity extends it. The countdown in the top bar is ringed by a **fuse**:
+  one full turn of the ring is the token's whole life, burning down as it
+  expires, turning amber for the last fifth and bursting at zero. Re-saving
+  the token relights it.
 - **Cleared on screen lock**, so stepping away from the machine ends the
   session's credential.
 - Cleared when the browser closes, or manually via **Clear token**.

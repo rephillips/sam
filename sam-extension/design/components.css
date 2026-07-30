@@ -99,6 +99,45 @@ body {
   align-items: center;
   gap: var(--space-2);
 }
+
+/* ── Token fuse ────────────────────────────────────────────────────────
+   The countdown's border is a burning fuse: a conic gradient whose lit arc
+   shrinks as the token's life runs out, so one full turn of the ring is the
+   token's whole lifetime. --fuse-progress (1 → 0) is set from popup.js.
+   At zero the ring bursts once and the chip is removed. */
+.fuse {
+  --fuse-progress: 1;
+  --fuse-hue: var(--fuse-lit);
+  position: relative;
+  display: inline-block;
+  padding: 2px; /* ring thickness */
+  border-radius: calc(var(--radius-sm) + 2px);
+  background: conic-gradient(
+    var(--fuse-hue) calc(var(--fuse-progress) * 360deg),
+    var(--fuse-spent) 0
+  );
+}
+.fuse--warn { --fuse-hue: var(--fuse-warn); }
+/* The chip sits on an opaque core so only the ring shows through. */
+.fuse .badge {
+  display: block;
+  background: var(--fuse-core);
+  border-color: transparent;
+}
+/* The burst: one expanding flash of the fuse's own hue. */
+.fuse--boom::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--fuse-hue), transparent 70%);
+  animation: sam-boom var(--dur-boom) var(--ease-standard) forwards;
+  pointer-events: none;
+}
+@keyframes sam-boom {
+  from { transform: scale(0.5); opacity: 0.9; }
+  to { transform: scale(2.1); opacity: 0; }
+}
 /* The countdown's explainer glyph — a real button so keyboard focus can
    summon the tooltip too. */
 .tip-glyph {

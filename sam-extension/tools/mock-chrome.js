@@ -29,9 +29,9 @@
   const LATENCY = scenario === "slow" ? 2500 : 120;
   const FIXTURE_KEY = "sam_dev_fixtures";
 
-  // Token lifetime in seconds. Mirrors the worker's 60-minute self-destruct;
-  // override with &ttl=<seconds> to watch the countdown expire quickly.
-  const TOKEN_TTL_S = Number(params.get("ttl")) > 0 ? Number(params.get("ttl")) : 3600;
+  // Token lifetime in seconds. Mirrors the worker's 5-minute self-destruct;
+  // override with &ttl=<seconds> to watch the fuse burn down quickly.
+  const TOKEN_TTL_S = Number(params.get("ttl")) > 0 ? Number(params.get("ttl")) : 300;
 
   // Expired tokens are as good as absent — same behaviour as the worker's
   // alarm, enforced lazily at read time since the mock has no alarms.
@@ -139,11 +139,14 @@
     if (log.length > 25) log.pop();
   }
 
+  // Mirrors acs.js CURL_PLACEHOLDER_TOKEN.
+  const PLACEHOLDER_TOKEN = "eyJraWQiOiJzcGx1bmsuc2...";
+
   // Mirrors acs.js buildCurl, including the placeholder token — the log never
   // carries a real credential, in dev or in the shipped extension.
   function curlFor(p) {
     const url = urlFor(p);
-    const token = "eyJraWQiOiJzcGx1bmsuc2...";
+    const token = PLACEHOLDER_TOKEN;
     if (p.method === "GET") return `curl ${url} --header 'Authorization: Bearer ${token}'`;
     return [
       `curl -X ${p.method} '${url}' \\`,
@@ -184,6 +187,7 @@
           ok: true,
           hasToken: Boolean(liveToken()),
           expiresAt: liveToken() ? Number(memSession.getItem("sam_token_expiry")) : null,
+          ttlMs: TOKEN_TTL_S * 1000,
         };
 
       case "saveToken":
@@ -205,6 +209,12 @@
         memSession.removeItem("sam_token");
         memSession.removeItem("sam_token_expiry");
         return { ok: true };
+
+      case "curlWithToken": {
+        const t = liveToken();
+        if (!t) return { ok: false, error: "No API token in session." };
+        return { ok: true, curl: String(msg.curl || "").split(PLACEHOLDER_TOKEN).join(t) };
+      }
 
       case "getLog":
         return { ok: true, log: log.slice() };

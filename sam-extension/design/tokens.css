@@ -150,6 +150,17 @@
   --gov-bg: rgba(123, 92, 255, 0.12);
   --gov-line: rgba(123, 92, 255, 0.45);
 
+  /* Token fuse — the ring around the countdown burns down as the token's
+     life runs out. Lit = time remaining, spent = time gone. */
+  --fuse-lit: var(--accent);
+  --fuse-warn: var(--warn);
+  --fuse-spent: var(--line);
+  --fuse-core: var(--panel);
+  /* Runtime state, written by popup.js as the token burns down: the fraction
+     of life left (1 → 0) and the hue the lit arc currently uses. */
+  --fuse-progress: 1;
+  --fuse-hue: var(--fuse-lit);
+
   /* focus — one ring everywhere, never removed without replacement */
   --focus: var(--green-400);
   --focus-ring: 0 0 0 2px rgba(94, 218, 160, 0.5);
@@ -227,6 +238,7 @@
   --dur-med: 200ms;
   --dur-spin: 700ms;    /* one revolution of a button spinner */
   --dur-shimmer: 1.4s;  /* one pass of a skeleton sweep */
+  --dur-boom: 620ms;    /* the fuse's burst when the token expires */
   --ease-standard: cubic-bezier(0.2, 0, 0.2, 1);
 
   --z-sticky: 5;
@@ -246,5 +258,6 @@
   :root {
     --dur-fast: 0ms;
     --dur-med: 0ms;
+    --dur-boom: 0ms;
   }
 }

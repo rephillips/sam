@@ -17,15 +17,13 @@
       <div class="topbar__badges">
         <span id="envBadge" class="badge badge--gov">GOVCLOUD IL2</span>
         <div id="timerRow" class="topbar__timerrow hidden">
-          <span
-            id="tokenTimer"
-            class="badge badge--accent"
-            title="Time until the saved API token self-destructs (60 minutes after save). At zero, requests fail until a token is saved again."
-          ></span>
+          <span id="tokenFuse" class="fuse">
+            <span id="tokenTimer" class="badge badge--accent"></span>
+          </span>
           <button
             type="button"
             class="tip-glyph tip"
-            data-tip="The API token self-destructs when this countdown reaches zero — 60 minutes after it was saved, no matter what. Re-save the token to restart the clock. Locking the screen clears it immediately."
+            data-tip="The ring around this timer is a fuse: one full turn is the token's whole 5-minute life, burning down as it expires. At zero the token self-destructs and requests fail until you save one again. Re-save to relight the fuse; locking the screen snuffs it immediately."
             aria-label="What the token countdown means"
           >ⓘ</button>
         </div>
@@ -129,7 +127,7 @@
         </div>
         <div id="curlPreview" class="hidden" style="margin-top: var(--space-4)">
           <div class="code-block__head">
-            <span>Equivalent curl — GET</span>
+            <span>Equivalent curl · Copy includes your token</span>
             <button id="curlCopy" class="link" type="button">Copy</button>
           </div>
           <div id="curlBox" class="code-block code-block--wrap"></div>

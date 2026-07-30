@@ -57,10 +57,15 @@ If a contrast pair fails, the colour value is wrong — not the test.
 
 - The API token lives ONLY in the service worker's `chrome.storage.session`
   (never storage.local/localStorage, never returned to the popup — `hasToken`
-  is a boolean + expiry). It self-destructs 60 min after save (chrome.alarms),
+  is a boolean + expiry). It self-destructs 5 min after save (chrome.alarms),
   clears on screen lock (chrome.idle), and the worker refuses non-JWT-shaped
   values and non-extension message senders.
-- Every curl rendered anywhere uses a placeholder token, never the real one.
+- Every curl **rendered on screen** uses `CURL_PLACEHOLDER_TOKEN`, never the
+  real one. **Copy** is the one deliberate exception: the worker swaps in the
+  live token on the way to the clipboard (`curlWithToken`) so the pasted
+  command actually runs. The credential still never enters the DOM, the
+  activity log, or any displayed string — do not "simplify" this by rendering
+  the real token and copying from the DOM.
 - Subnets are validated locally (public, routable space only — integer-range
   checks in `acs.js`) before any request leaves the browser.
 - The dev harness mock must never be weaker than the real thing: token in an

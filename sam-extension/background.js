@@ -2,14 +2,19 @@
 // The API token lives here and in chrome.storage.session ONLY. It is never
 // returned to the popup and never written to disk-backed storage.
 
-import { buildIpAllowListUrl, buildCurl, ENVIRONMENTS } from "./acs.js";
+import {
+  buildIpAllowListUrl,
+  buildCurl,
+  ENVIRONMENTS,
+  CURL_PLACEHOLDER_TOKEN,
+} from "./acs.js";
 
 const TOKEN_KEY = "sam_token";
 const TOKEN_EXPIRY_KEY = "sam_token_expiry";
 const LOG_KEY = "sam_request_log";
 const MAX_LOG = 25;
 const TOKEN_TTL_ALARM = "sam_token_ttl";
-const TOKEN_TTL_MINUTES = 60;
+const TOKEN_TTL_MINUTES = 5;
 
 // Session storage is TRUSTED_CONTEXTS by default; state it explicitly so the
 // guarantee survives future drift (e.g. someone adding a content script).
@@ -207,6 +212,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             ok: true,
             hasToken: Boolean(await getToken()),
             expiresAt: await getTokenExpiry(),
+            // Total lifetime, so the popup can draw the fuse as a fraction.
+            ttlMs: TOKEN_TTL_MINUTES * 60 * 1000,
           });
           break;
         case "clearToken":
@@ -219,6 +226,22 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "getLog":
           sendResponse({ ok: true, log: await getLog() });
           break;
+        // Runnable curl: swap the placeholder for the live token so an
+        // operator can paste a working command into a terminal. The popup
+        // sends the redacted string and writes the result straight to the
+        // clipboard — the credential is never rendered, stored, or logged.
+        case "curlWithToken": {
+          const tok = await getToken();
+          if (!tok) {
+            sendResponse({ ok: false, error: "No API token in session." });
+            break;
+          }
+          sendResponse({
+            ok: true,
+            curl: String(msg.curl || "").split(CURL_PLACEHOLDER_TOKEN).join(tok),
+          });
+          break;
+        }
         default:
           sendResponse({ ok: false, error: `Unknown message type: ${msg.type}` });
       }

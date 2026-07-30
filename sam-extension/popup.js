@@ -84,7 +84,7 @@ async function loadProfile() {
     $("token").placeholder = "•••••••• token in session";
     setStatus($("connStatus"), "Token is loaded for this browser session.", "ok");
     collapseConn(true);
-    startTokenTimer(res.expiresAt);
+    startTokenTimer(res.expiresAt, res.ttlMs);
   } else if (p && p.stack) {
     setStatus($("connStatus"), "Stack saved. Enter your API token to continue.", "info");
   } else {
@@ -109,30 +109,50 @@ function collapseConn(collapse) {
 // renders the remaining time in the top bar. The alarm in the worker is the
 // enforcement — this display is informational and self-corrects by re-asking
 // the worker when it reaches zero.
-const TIMER_WARN_MS = 5 * 60 * 1000;
+// The fuse turns amber for the last fifth of the token's life, so the warning
+// scales with whatever lifetime the worker reports.
+const WARN_FRACTION = 0.2;
+// Sub-second ticks so the ring creeps rather than jumping a degree at a time.
+const TICK_MS = 250;
 let timerInterval = null;
 
 function stopTokenTimer() {
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = null;
   $("timerRow").classList.add("hidden");
+  $("tokenFuse").classList.remove("fuse--warn", "fuse--boom");
 }
 
-function startTokenTimer(expiresAt) {
+// The fuse burns out: fire the burst, then hide the chip once it has played.
+function detonateFuse() {
+  const fuse = $("tokenFuse");
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  fuse.style.setProperty("--fuse-progress", "0");
+  fuse.classList.add("fuse--boom");
+  setTimeout(() => {
+    $("timerRow").classList.add("hidden");
+    fuse.classList.remove("fuse--warn", "fuse--boom");
+  }, 700);
+}
+
+function startTokenTimer(expiresAt, ttlMs) {
   stopTokenTimer();
   if (!expiresAt) return;
+  const total = ttlMs || Math.max(expiresAt - Date.now(), 1);
   $("timerRow").classList.remove("hidden");
   const chip = $("tokenTimer");
+  const fuse = $("tokenFuse");
 
   const tick = async () => {
     const left = expiresAt - Date.now();
     if (left <= 0) {
-      stopTokenTimer();
+      detonateFuse();
       // Confirm with the worker rather than assuming — lock-clear or a
       // re-save may have changed the state underneath us.
       const res = await send({ type: "hasToken" });
       if (res && res.hasToken && res.expiresAt) {
-        startTokenTimer(res.expiresAt);
+        startTokenTimer(res.expiresAt, res.ttlMs);
       } else {
         $("token").placeholder = "eyJhbGciOi...";
         setStatus($("connStatus"), "Token self-destructed. Save a token to continue.", "info");
@@ -141,12 +161,17 @@ function startTokenTimer(expiresAt) {
     }
     const mins = Math.floor(left / 60000);
     const secs = Math.floor((left % 60000) / 1000);
-    chip.textContent = `⏱ ${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-    chip.className = `badge ${left <= TIMER_WARN_MS ? "badge--warn" : "badge--accent"}`;
+    chip.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+
+    const remaining = Math.min(left / total, 1);
+    fuse.style.setProperty("--fuse-progress", remaining.toFixed(4));
+    const warn = remaining <= WARN_FRACTION;
+    fuse.classList.toggle("fuse--warn", warn);
+    chip.className = `badge ${warn ? "badge--warn" : "badge--accent"}`;
   };
 
   tick();
-  timerInterval = setInterval(tick, 1000);
+  timerInterval = setInterval(tick, TICK_MS);
 }
 
 /* ------------------------------ ACS ------------------------------ */
@@ -227,6 +252,21 @@ async function loadList(silent = false, statusEl) {
   setStatus(status, `Loaded ${f.label} allow list in ${res.ms}ms.`, "ok");
   await refreshLog();
   return true;
+}
+
+/* ------------------------------ curl copy ------------------------------ */
+
+// Copy a runnable command: the worker swaps the placeholder for the live
+// token on its way to the clipboard, so the pasted curl actually works. The
+// credential never touches the DOM — what stays on screen is still redacted.
+// With no token in session there is nothing to substitute, so the redacted
+// form is copied and the button says so.
+async function copyCurl(redactedCurl, btn) {
+  const res = await send({ type: "curlWithToken", curl: redactedCurl });
+  const runnable = res && res.ok && res.curl;
+  await navigator.clipboard.writeText(runnable ? res.curl : redactedCurl);
+  btn.textContent = runnable ? "Copied" : "Copied (no token)";
+  setTimeout(() => (btn.textContent = "Copy"), 1600);
 }
 
 /* --------------------------- curl preview --------------------------- */
@@ -311,15 +351,11 @@ function openModal({ title, warnings, subnets, curl, confirmLabel, danger, chall
   const head = document.createElement("div");
   head.className = "code-block__head";
   const label = document.createElement("span");
-  label.textContent = "Equivalent curl";
+  label.textContent = "Equivalent curl · Copy includes your token";
   const copy = document.createElement("button");
   copy.className = "link";
   copy.textContent = "Copy";
-  copy.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(curl);
-    copy.textContent = "Copied";
-    setTimeout(() => (copy.textContent = "Copy"), 1400);
-  });
+  copy.addEventListener("click", () => copyCurl(curl, copy));
   head.append(label, copy);
   body.appendChild(head);
 
@@ -532,15 +568,11 @@ async function refreshLog() {
       const head = document.createElement("div");
       head.className = "code-block__head";
       const label = document.createElement("span");
-      label.textContent = "Equivalent curl — token redacted";
+      label.textContent = "Equivalent curl · Copy includes your token";
       const copy = document.createElement("button");
       copy.className = "link";
       copy.textContent = "Copy";
-      copy.addEventListener("click", async () => {
-        await navigator.clipboard.writeText(e.curl);
-        copy.textContent = "Copied";
-        setTimeout(() => (copy.textContent = "Copy"), 1400);
-      });
+      copy.addEventListener("click", () => copyCurl(e.curl, copy));
       head.append(label, copy);
       const box = document.createElement("div");
       box.className = "code-block code-block--wrap";
@@ -641,7 +673,7 @@ async function init() {
       $("token").value = "";
       $("token").placeholder = "•••••••• token in session";
       const status = await send({ type: "hasToken" });
-      if (status && status.expiresAt) startTokenTimer(status.expiresAt);
+      if (status && status.expiresAt) startTokenTimer(status.expiresAt, status.ttlMs);
     } else {
       const has = await send({ type: "hasToken" });
       if (!has.hasToken) {
@@ -668,11 +700,9 @@ async function init() {
   wireTabs();
 
   $("curlToggle").addEventListener("click", () => toggleCurlPreview());
-  $("curlCopy").addEventListener("click", async () => {
-    await navigator.clipboard.writeText($("curlBox").textContent);
-    $("curlCopy").textContent = "Copied";
-    setTimeout(() => ($("curlCopy").textContent = "Copy"), 1400);
-  });
+  $("curlCopy").addEventListener("click", () =>
+    copyCurl($("curlBox").textContent, $("curlCopy"))
+  );
 
   $("loadList").addEventListener("click", () => loadList());
   $("refresh").addEventListener("click", () => loadList());

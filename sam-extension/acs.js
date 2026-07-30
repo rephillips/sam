@@ -112,10 +112,17 @@ export const PORT_DOC_URL =
 export const ACS_USAGE_URL =
   "https://docs.splunk.com/Documentation/SplunkCloud/latest/Config/ACSusage";
 
+/**
+ * Stand-in for the bearer token in every curl string SAM *renders*. The real
+ * token is substituted only by the service worker, only into the clipboard,
+ * and only on an explicit copy. Nothing on screen ever shows the credential.
+ */
+export const CURL_PLACEHOLDER_TOKEN = "eyJraWQiOiJzcGx1bmsuc2...";
+
 /** Build the equivalent curl command, so SAM stays runbook-compatible. */
 export function buildCurl({ envId, stack, feature, ipVersion, method, subnets }) {
   const url = buildIpAllowListUrl({ envId, stack, feature, ipVersion });
-  const token = "eyJraWQiOiJzcGx1bmsuc2...";
+  const token = CURL_PLACEHOLDER_TOKEN;
 
   if (method === "GET") {
     return `curl ${url} --header 'Authorization: Bearer ${token}'`;
