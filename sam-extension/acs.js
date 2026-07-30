@@ -111,10 +111,10 @@ export const PORT_DOC_URL =
   "https://docs.splunk.com/Documentation/SplunkCloud/latest/Config/ConfigureIPAllowList";
 export const ACS_USAGE_URL =
   "https://docs.splunk.com/Documentation/SplunkCloud/latest/Config/ACSusage";
-// Internal KCS article (Salesforce Knowledge). Linked to the article itself,
-// without the ws= workspace parameter that pins it to one Case.
+// KCS article — the public customer-portal URL, so it resolves for anyone
+// rather than only for users signed into Splunk's internal Salesforce org.
 export const KCS_ARTICLE_URL =
-  "https://splunk.lightning.force.com/lightning/r/Knowledge__kav/ka0KW000000wne3YAA/view";
+  "https://splunk.my.site.com/customer/s/article/Update-IP-Allowlist-for-Splunk-Cloud-FedRAMP-Moderate-IL2-stacks-with-ACS-API";
 
 /**
  * Stand-in for the bearer token in every curl string SAM *renders*. The real
