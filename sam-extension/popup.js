@@ -734,7 +734,7 @@ async function init() {
   wireTabs();
 
   const openAbout = (show) => $("aboutModal").classList.toggle("hidden", !show);
-  $("aboutVersion").textContent = `Version ${$("version").textContent}`;
+  $("aboutVersion").textContent = `Version: ${$("version").textContent}`;
   $("aboutRepo").href = REPO_URL;
   $("aboutBtn").addEventListener("click", () => openAbout(true));
   $("aboutClose").addEventListener("click", () => openAbout(false));

@@ -763,8 +763,15 @@ textarea::placeholder { color: var(--text-faint); }
 .footer {
   padding: var(--space-5) var(--gutter) var(--space-7);
   display: flex;
-  gap: var(--space-6);
+  gap: var(--space-4);
+  align-items: center;
   font-size: var(--fs-xs);
+}
+/* Bullet separators between the footer's actions. The version is pushed to
+   the far right and stands apart, so it gets no bullet before it. */
+.footer__sep {
+  color: var(--line-strong);
+  user-select: none;
 }
 .footer__link {
   color: var(--muted);
