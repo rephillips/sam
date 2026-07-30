@@ -488,7 +488,10 @@ async function refreshLog() {
   const fmtTime = (ts) => {
     const d = new Date(ts);
     const p = (n) => String(n).padStart(2, "0");
-    return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+    return (
+      `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ` +
+      `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+    );
   };
 
   for (const e of res.log) {

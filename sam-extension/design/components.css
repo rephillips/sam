@@ -603,7 +603,7 @@ textarea::placeholder { color: var(--text-faint); }
 }
 .log__time {
   color: var(--text-faint);
-  width: 58px;
+  width: 128px; /* fits "YYYY-MM-DD HH:MM:SS" at --fs-xs mono */
   flex-shrink: 0;
 }
 .log__method {
