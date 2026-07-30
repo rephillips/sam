@@ -208,22 +208,26 @@
       <div class="modal__card">
         <h2 id="aboutTitle" class="modal__title">About Splunk ACS Helper</h2>
         <p class="callout__lead">
-          Manages Splunk Cloud IP allow lists through the Admin Config Service (ACS):
-          view, add, and remove subnets for every ACS feature across GovCloud IL2 and
-          Commercial stacks, production or staging.
+          A client browser extension for configuring Splunk Cloud IP Allow Lists through
+          the Admin Config Services (ACS). View, add, and remove subnets for every ACS
+          feature across GovCloud IL2 and Commercial stacks, production or staging.
         </p>
         <p class="callout__lead">
-          It replaces the curl runbook without hiding it. Every write is confirmed
+          Stop fumbling around looking for the correct curl commands. Every write is confirmed
           against the exact subnets affected, verified by an automatic re-read, logged
           with its equivalent command, and every subnet is checked as public, routable
           space before any request leaves the browser. The API token is held in session
           memory only and self-destructs on its own timer.
         </p>
-        <p class="field__hint">
+        <p class="field__hint" style="margin-top: var(--space-8)">
           Developer: Rob Phillips ·
           <a class="link" href="mailto:robphi@cisco.com">robphi@cisco.com</a>
         </p>
         <p class="field__hint" id="aboutVersion"></p>
+        <p class="field__hint">
+          Latest version:
+          <a id="aboutRepo" class="link" href="#" target="_blank" rel="noreferrer">github.com/rephillips/sam</a>
+        </p>
         <div class="row modal__actions row--end">
           <button id="aboutClose" class="btn btn--ghost">Close</button>
         </div>

@@ -8,6 +8,7 @@ import {
   buildCurl,
   ACS_USAGE_URL,
   KCS_ARTICLE_URL,
+  REPO_URL,
 } from "./acs.js";
 
 const $ = (id) => document.getElementById(id);
@@ -734,6 +735,7 @@ async function init() {
 
   const openAbout = (show) => $("aboutModal").classList.toggle("hidden", !show);
   $("aboutVersion").textContent = `Version ${$("version").textContent}`;
+  $("aboutRepo").href = REPO_URL;
   $("aboutBtn").addEventListener("click", () => openAbout(true));
   $("aboutClose").addEventListener("click", () => openAbout(false));
   $("aboutModal").addEventListener("click", (e) => {
