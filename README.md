@@ -20,7 +20,10 @@ Chrome will ask you to approve the ACS host permissions on first load.
 ## What it does
 
 - **Every ACS feature**: `search-api`, `search-ui`, `hec`, `s2s`, `acs`,
-  `idm-ui`, `idm-api`, each with its port and its own lockout warning.
+  `idm-ui`, `idm-api`, each naming the port it opens and what removing a
+  subnet from it costs. The three that can lock you out of your own access
+  (`search-api`, `search-ui`, and `acs`, which is the API this extension
+  itself uses) raise that warning on the confirm dialog.
 - **Four environments**: GovCloud IL2 and Commercial, each with a staging host
   (`staging.admin.*`). ACS does not serve dev stacks, so none is offered.
 - **View, add, and delete** from one panel, with the feature named above the
@@ -51,9 +54,11 @@ be treated as a live credential.
 
 ```
 cd sam-extension
-npm install
 npm run dev          # harness at http://localhost:8910
 ```
+
+The harness needs no dependencies. `npm install` is only for the screenshot
+tooling (`npm run shoot`), which pulls in Playwright.
 
 The harness serves the real popup against a mock `chrome.*` API, so you can
 iterate without packing and reloading the extension. Append

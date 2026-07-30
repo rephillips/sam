@@ -1,6 +1,6 @@
 # Splunk ACS Helper
 
-A Chrome (Manifest V3) extension for Splunk Cloud ACS administration — internal
+A Chrome (Manifest V3) extension for Splunk Cloud ACS administration. Internal
 codename **SAM**, which the source tree and tooling still use. This first
 version covers **IP allow list management**, built against GovCloud IL2 as the
 primary target, with commercial supported by the same code path.
@@ -35,25 +35,25 @@ and v6 validation) remains in `acs.js`, so re-exposing it is a UI-only change.
 The Environment selector picks the ACS host:
 
 - **GovCloud IL2 (FedRAMP Moderate)** → `https://admin.splunkcloudgc.com`
-- **GovCloud IL2 — Staging** → `https://staging.admin.splunkcloudgc.com`
+- **GovCloud IL2 - Staging** → `https://staging.admin.splunkcloudgc.com`
 - **Commercial** → `https://admin.splunk.com`
-- **Commercial — Staging** → `https://staging.admin.splunk.com`
+- **Commercial - Staging** → `https://staging.admin.splunk.com`
 
 GovCloud is the default and is visually distinguished (purple badge plus a
 banner) so it is never ambiguous which boundary you are operating in. Staging
 environments carry a `· STAGING` badge suffix.
 
-**Staging vs dev stacks:** ACS works with staging stacks — same API signature,
+**Staging vs dev stacks:** ACS works with staging stacks, with the same API signature and a
 staging host (the ACS CLI equivalent is `--server=https://staging.admin.splunk.com`).
 ACS does **not** work with dev stacks, which is why no dev environment exists
 in the selector. The "Copy as curl" output routes to the right host
 automatically because the host is baked into the URL.
 
 Experience (Classic by default, or Victoria) is stored on the connection
-profile. IP allow
-list endpoints are identical across both experiences, so it does not affect
-routing today — it is captured because apps and index endpoints do branch on it,
-and that is the next surface to build.
+profile. IP allow list endpoints are identical across both experiences, so it
+does not affect routing today: the generated curl is the same either way. It is
+captured because apps and index endpoints do branch on it, and that is the next
+surface to build.
 
 ## Public IP validation
 
@@ -80,7 +80,7 @@ The error names the fix (`52.24.108.7/32`).
 
 Other checks: octet range and leading-zero rejection, prefix length bounds,
 malformed IPv6 (`2600:::1`, stray colons, multiple `::`), de-duplication, and
-host-bit normalization — `34.210.15.7/24` is corrected to `34.210.15.0/24` with
+host-bit normalization, so `34.210.15.7/24` is corrected to `34.210.15.0/24` with
 a notice rather than being silently sent.
 
 ## Safety behaviour
@@ -89,8 +89,10 @@ a notice rather than being silently sent.
 - **Type-to-confirm on removals**: the Remove button stays disabled until the
   operator types `DELETE` into the confirm dialog, so a destructive change can
   never be two reflexive clicks.
-- **Lockout warnings** on `search-api` and `search-ui` removals, and an explicit
-  warning when a removal would empty an allow list (which denies all access).
+- **Lockout warnings** on removals from the three features that can cut off
+  your own access: `search-api`, `search-ui`, and `acs` (the API this
+  extension itself uses). Plus an explicit warning when a removal would empty
+  an allow list, which denies all access to that surface.
 - **Automatic re-read after every write.** SAM re-runs the `GET` and confirms the
   change actually landed, reporting a mismatch if ACS accepted the request but
   the list does not reflect it. This is the "confirm the subnet was added" step
@@ -100,13 +102,13 @@ a notice rather than being silently sent.
   **"Show curl"** toggle on the IP Allow List panel, which reveals the equivalent
   `GET` for the current environment, stack, feature, and IP version and updates
   live as those change. Curl is always **displayed** with a placeholder token,
-  so screenshots, screen shares, and tickets never leak the credential —
+  so screenshots, screen shares, and tickets never leak the credential.
   **Copy** puts the real token in, so the command you paste into a terminal
   actually runs. Treat a copied command as a live credential.
-- **Open in window** (footer) hosts the same page in a resizable window — the
+- **Open in window** (footer) hosts the same page in a resizable window, because the
   action popup itself is capped at 800×600 by Chrome. Windowed mode is fluid up
   to a readable 720px; token custody is identical in both surfaces.
-- **Activity log** of the session's requests — method, path, status, latency.
+- **Activity log** of the session's requests: method, path, status, latency.
 
 ## Getting a token
 
@@ -128,7 +130,7 @@ with access explicitly pinned to trusted contexts.
 
 - Never written to `localStorage` or `chrome.storage.local`.
 - Never returned to the popup after it is saved.
-- **Self-destructs 60 minutes after save** — a fixed lifetime; no amount of
+- **Self-destructs 60 minutes after save**, a fixed lifetime; no amount of
   activity extends it. The countdown in the top bar is ringed by a **fuse**:
   one full turn of the ring is the token's whole life, burning down as it
   expires, turning amber for the last fifth and bursting at zero. Re-saving
@@ -142,8 +144,9 @@ with access explicitly pinned to trusted contexts.
 - The message listener rejects senders other than the extension itself.
 - Only the stack, environment, experience, and feature selection persist to disk.
 
-Host permissions are scoped to the two ACS hosts and nothing else. All requests
-originate from the extension's background context, which is what avoids CORS.
+Host permissions are scoped to the four ACS hosts (production and staging for
+both boundaries) and nothing else. All requests originate from the extension's
+background context, which is what avoids CORS.
 
 ## Install
 
@@ -158,7 +161,7 @@ Or run `npm run package` to build `sam-extension.zip`.
 Opening `popup.html` directly does not work: Chrome blocks ES modules over
 `file://`, and `chrome.*` does not exist outside an extension. The dev harness
 solves both by serving the real `popup.html` and injecting a mock `chrome` API
-at request time — there is no duplicate copy of the markup to drift.
+at request time, so there is no duplicate copy of the markup to drift.
 
 ```
 npm install
@@ -169,12 +172,17 @@ The index links the popup, the style guide, and every scenario:
 
 | Scenario | Shows |
 | --- | --- |
-| `?scenario=fresh` | First run — no token, no profile |
+| `?scenario=fresh` | First run, no token or profile |
 | `?scenario=populated` | Three subnets on the Search API list |
 | `?scenario=empty` | Allow list returns nothing |
 | `?scenario=error` | ACS returns 403 |
 | `?scenario=slow` | 2.5s latency, for loading states |
 | `?reset=1` | Clear stored profile, token, and fixtures |
+| `&ttl=<seconds>` | Shorten the token lifetime to watch the fuse burn down |
+| `&windowed=1` | The fluid layout used by "Open in window" |
+
+The harness has no `chrome.idle`, so call `samSimulateLock()` in the console to
+exercise the screen-lock path that clears the token.
 
 ## Design system
 
@@ -182,9 +190,10 @@ Tokens and components live in `design/`, documented in
 [`design/DESIGN-SYSTEM.md`](design/DESIGN-SYSTEM.md) and rendered live at
 `/design/styleguide.html` from the same stylesheets the popup loads.
 
-`popup.css` is now four lines — the popup shell only. Everything visual comes
-from `design/tokens.css` and `design/components.css`, and the linter fails the
-build if a raw colour or duration appears outside the token layer.
+`popup.css` holds only the popup shell: its width, scrolling, and the fluid
+windowed layout. Everything visual comes from `design/tokens.css` and
+`design/components.css`, and the linter fails the build if a raw colour or
+duration appears outside the token layer.
 
 ## Test
 
@@ -195,19 +204,19 @@ npm run shoot /tmp/shots       # capture all 10 UI states
 npm run diff before/ after/    # pixel-diff two capture directories
 ```
 
-`npm test` runs 60 assertions covering address validation, reserved-block
-overlap detection, URL routing for both environments, curl parity with the
-documented commands, and removal risk assessment. `npm run contrast` checks 23
-colour pairings against WCAG 2.1 AA.
+`npm test` runs 67 assertions covering address validation, the mandatory
+prefix length, reserved-block overlap detection, URL routing for all four
+environments, curl parity with the documented commands, and removal risk
+assessment. `npm run contrast` checks 26 colour pairings against WCAG 2.1 AA.
 
 ## Layout
 
 ```
 manifest.json      MV3 manifest, host permissions
-acs.js             routing, validation, curl builder — no secrets, fully testable
+acs.js             routing, validation, curl builder. No secrets, fully testable
 background.js      service worker: token custody, fetch, error humanizing
 popup.html/js      UI markup and behaviour
-popup.css          popup shell only — width and scroll
+popup.css          popup shell only: width and scroll
 design/            tokens, components, style guide, system docs
 icons/             generated by tools/make_icons.py
 test/              node test suite
