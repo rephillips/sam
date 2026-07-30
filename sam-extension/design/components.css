@@ -99,6 +99,15 @@ body {
   align-items: center;
   gap: var(--space-2);
 }
+/* Splunk's own expiry for the saved token, which is unrelated to the local
+   self-destruct the fuse counts down. Display only. */
+.topbar__exp {
+  font-size: var(--fs-2xs);
+  font-family: var(--font-mono);
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.topbar__exp--past { color: var(--warn-fg); }
 
 /* ── Token fuse ────────────────────────────────────────────────────────
    The countdown's border is a burning fuse: a conic gradient whose lit arc

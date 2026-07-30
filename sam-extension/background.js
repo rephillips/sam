@@ -47,6 +47,30 @@ async function getTokenExpiry() {
   return bag[TOKEN_EXPIRY_KEY] || null;
 }
 
+/**
+ * Read the token's own `exp` claim, in ms. This is Splunk's expiry, which is
+ * unrelated to SAM's local self-destruct: a token can be valid for weeks, or
+ * already dead when it is pasted.
+ *
+ * The payload is base64url JSON, so this is decoding rather than verifying.
+ * The signature cannot be checked without Splunk's key, which makes the value
+ * advisory: display it, never gate access on it. ACS returning 401 remains the
+ * authoritative answer. Returns null when there is no usable claim, which
+ * includes tokens created with no expiration.
+ */
+function splunkTokenExpiry(token) {
+  try {
+    const payload = String(token).split(".")[1];
+    if (!payload) return null;
+    const b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const claims = JSON.parse(atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4)));
+    const exp = Number(claims.exp);
+    return Number.isFinite(exp) && exp > 0 ? exp * 1000 : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 async function clearToken(reason = "manual") {
   await chrome.storage.session.remove([TOKEN_KEY, TOKEN_EXPIRY_KEY]);
   await chrome.alarms.clear(TOKEN_TTL_ALARM);
@@ -256,15 +280,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           await setToken(msg.token);
           sendResponse({ ok: true });
           break;
-        case "hasToken":
+        case "hasToken": {
+          const tok = await getToken();
           sendResponse({
             ok: true,
-            hasToken: Boolean(await getToken()),
+            hasToken: Boolean(tok),
             expiresAt: await getTokenExpiry(),
             // Total lifetime, so the popup can draw the fuse as a fraction.
             ttlMs: TOKEN_TTL_MINUTES * 60 * 1000,
+            // Splunk's own expiry, for display only. A timestamp is metadata,
+            // not the credential.
+            splunkExpiresAt: tok ? splunkTokenExpiry(tok) : null,
           });
           break;
+        }
         case "clearToken":
           await clearToken();
           sendResponse({ ok: true });

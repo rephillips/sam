@@ -138,6 +138,11 @@ with access explicitly pinned to trusted contexts.
   the token relights it.
 - **Cleared on screen lock**, so stepping away from the machine ends the
   session's credential.
+- **Splunk's own expiry is shown beside the countdown**, decoded from the
+  token's `exp` claim. That is a separate clock from the local self-destruct:
+  a token can be valid at Splunk for weeks, or already dead when it is pasted,
+  and the top bar says which. The claim is read, not verified, so it is
+  advisory; ACS returning 401 remains the authoritative answer.
 - Cleared when the browser closes, or manually via **Clear token**.
 - **Shape-validated on save**: the worker refuses anything that is not a
   three-segment JWT, so a mispasted secret (an AWS key, a password) is never

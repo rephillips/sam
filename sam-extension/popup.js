@@ -95,6 +95,7 @@ async function loadProfile() {
     setStatus($("connStatus"), "Token is loaded for this browser session.", "ok");
     collapseConn(true);
     startTokenTimer(res.expiresAt, res.ttlMs);
+    showSplunkExpiry(res.splunkExpiresAt);
   } else if (p && p.stack) {
     setStatus($("connStatus"), "Stack saved. Enter your API token to continue.", "info");
   }
@@ -125,11 +126,29 @@ const WARN_MAX_MS = 5 * 60 * 1000;
 const TICK_MS = 250;
 let timerInterval = null;
 
+// Splunk's expiry for the saved token, which the local fuse knows nothing
+// about. Hidden when the token states no expiry, or is not a decodable JWT.
+function showSplunkExpiry(ms) {
+  const el = $("splunkExp");
+  if (!ms) {
+    el.classList.add("hidden");
+    el.textContent = "";
+    return;
+  }
+  const d = new Date(ms);
+  const p = (n) => String(n).padStart(2, "0");
+  const stamp = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  const past = ms <= Date.now();
+  el.textContent = past ? `Splunk token expired ${stamp}` : `Splunk token expires ${stamp}`;
+  el.className = `topbar__exp${past ? " topbar__exp--past" : ""}`;
+}
+
 function stopTokenTimer() {
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = null;
   $("timerRow").classList.add("hidden");
   $("tokenFuse").classList.remove("fuse--warn", "fuse--boom");
+  showSplunkExpiry(null);
 }
 
 // The fuse burns out: fire the burst, then hide the chip once it has played.
@@ -170,6 +189,7 @@ async function syncTokenState() {
     return;
   }
   if (res.expiresAt) startTokenTimer(res.expiresAt, res.ttlMs);
+  showSplunkExpiry(res.splunkExpiresAt);
 }
 
 function startTokenTimer(expiresAt, ttlMs) {
@@ -189,6 +209,7 @@ function startTokenTimer(expiresAt, ttlMs) {
       const res = await send({ type: "hasToken" });
       if (res && res.hasToken && res.expiresAt) {
         startTokenTimer(res.expiresAt, res.ttlMs);
+        showSplunkExpiry(res.splunkExpiresAt);
       } else {
         $("token").placeholder = "eyJhbGciOi...";
         setStatus($("connStatus"), "Token self-destructed. Save a token to continue.", "info");
@@ -750,6 +771,7 @@ async function init() {
       $("token").placeholder = "•••••••• token in session";
       const status = await send({ type: "hasToken" });
       if (status && status.expiresAt) startTokenTimer(status.expiresAt, status.ttlMs);
+      if (status) showSplunkExpiry(status.splunkExpiresAt);
     } else {
       const has = await send({ type: "hasToken" });
       if (!has.hasToken) {

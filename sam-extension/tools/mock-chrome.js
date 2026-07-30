@@ -34,6 +34,12 @@
   // (?ttl=20 burns a full ring, amber, and the burst in twenty seconds).
   const TOKEN_TTL_S = Number(params.get("ttl")) > 0 ? Number(params.get("ttl")) : 3600;
 
+  // Splunk's own token expiry. The real worker decodes this from the JWT's exp
+  // claim, which the harness cannot do because it refuses real JWTs. Pass
+  // &exp=<seconds from now> to exercise the display; negative for an already
+  // expired token. Omitted means "token states no expiry".
+  const SPLUNK_EXP_S = params.has("exp") ? Number(params.get("exp")) : null;
+
   // Expired tokens are as good as absent — same behaviour as the worker's
   // alarm, enforced lazily at read time since the mock has no alarms.
   function liveToken() {
@@ -206,6 +212,10 @@
           hasToken: Boolean(liveToken()),
           expiresAt: liveToken() ? Number(memSession.getItem("sam_token_expiry")) : null,
           ttlMs: TOKEN_TTL_S * 1000,
+          splunkExpiresAt:
+            liveToken() && Number.isFinite(SPLUNK_EXP_S)
+              ? Date.now() + SPLUNK_EXP_S * 1000
+              : null,
         };
 
       case "saveToken":
