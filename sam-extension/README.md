@@ -24,8 +24,8 @@ Supported feature types:
 | HEC ingestion | `hec` | 443 | Lets specified subnets send HTTP data to indexers. |
 | Indexer ingestion | `s2s` | 9997 | Lets subnets with UFs or HFs send data to indexers. |
 | SH UI access | `search-ui` | 80/443 | Explicit search head UI access in regulated environments. |
-| IDM UI access | `idm-ui` | 443 | Explicit IDM UI access in regulated environments. |
-| IDM API | `idm-api` | 8089 | Access for add-ons that send data via the IDM API. |
+| IDM UI access | `idm-ui` | 443 | Explicit IDM UI access in regulated environments. Classic only. |
+| IDM API | `idm-api` | 8089 | Access for add-ons that send data via the IDM API. Classic only. |
 
 The UI manages IPv4 lists only; the IPv6 plumbing (`ipallowlists-v6` routing
 and v6 validation) remains in `acs.js`, so re-exposing it is a UI-only change.
@@ -52,9 +52,12 @@ automatically because the host is baked into the URL.
 
 Experience (Classic by default, or Victoria) is stored on the connection
 profile. IP allow list endpoints are identical across both experiences, so it
-does not affect routing today: the generated curl is the same either way. It is
-captured because apps and index endpoints do branch on it, and that is the next
-surface to build.
+does not affect routing: the generated curl is the same either way. It does
+affect which features exist. Victoria stacks have no Inputs Data Manager, so
+selecting Victoria removes `idm-ui` and `idm-api` from the Feature list, and a
+saved profile sitting on one of them falls back to Search API. Experience is
+also captured because apps and index endpoints branch on it, and that is the
+next surface to build.
 
 ## Public IP validation
 

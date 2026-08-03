@@ -2,6 +2,7 @@ import {
   environmentById,
   FEATURES,
   featureById,
+  featureAvailable,
   parseSubnetList,
   assessRemoval,
   assessAddition,
@@ -51,6 +52,28 @@ function applyEnvChrome() {
   $("govNotice").classList.toggle("hidden", !env.restricted);
 }
 
+const DEFAULT_FEATURE = "search-api";
+
+/**
+ * Victoria stacks have no Inputs Data Manager, so the IDM allow lists must not
+ * be selectable there — picking one would aim a real request at a surface the
+ * stack does not have. Options are hidden and disabled rather than removed, so
+ * switching back to Classic restores them without rebuilding the select.
+ * Returns true when the current selection had to be moved off a hidden option.
+ */
+function applyExperienceFeatures() {
+  const exp = $("experience").value;
+  const select = $("feature");
+  for (const opt of select.options) {
+    const available = featureAvailable(opt.value, exp);
+    opt.hidden = !available;
+    opt.disabled = !available;
+  }
+  if (featureAvailable(select.value, exp)) return false;
+  select.value = DEFAULT_FEATURE;
+  return true;
+}
+
 function applyFeatureNote() {
   const f = featureById($("feature").value);
   // Some features (ACS itself) have no stack port to open.
@@ -98,9 +121,12 @@ async function loadProfile() {
     $("env").value = p.envId || "govcloud_il2";
     $("experience").value = p.experience || "classic";
     $("stack").value = p.stack || "";
-    $("feature").value = p.feature || "search-api";
+    $("feature").value = p.feature || DEFAULT_FEATURE;
   }
   applyEnvChrome();
+  // A profile saved before the experience was switched can name an IDM
+  // feature that Victoria does not have; this puts the select back in range.
+  applyExperienceFeatures();
   applyFeatureNote();
   updateConnSummary();
 
@@ -740,6 +766,21 @@ async function init() {
     invalidateList();
     updateConnSummary();
     refreshCurlIfVisible();
+    await saveProfile();
+  });
+
+  $("experience").addEventListener("change", async () => {
+    if (applyExperienceFeatures()) {
+      applyFeatureNote();
+      invalidateList();
+      refreshCurlIfVisible();
+      setStatus(
+        $("listStatus"),
+        "Victoria stacks have no Inputs Data Manager. Feature switched to " +
+          `${featureById(DEFAULT_FEATURE).label}.`,
+        "info"
+      );
+    }
     await saveProfile();
   });
 

@@ -6,6 +6,8 @@ import {
   buildIpAllowListUrl,
   buildCurl,
   assessRemoval,
+  featureAvailable,
+  featuresForExperience,
 } from "../acs.js";
 
 let pass = 0;
@@ -196,6 +198,25 @@ ok("counts remaining", emptying.remainingCount === 0);
 
 const partial = assessRemoval({ feature: "hec", subnets: ["8.8.8.8/32"], currentList: ["8.8.8.8/32", "1.1.1.1/32"] });
 ok("no empty-list warning on partial removal", !partial.warnings.some((w) => w.includes("every subnet")));
+
+/* ── feature availability per experience ────────────────────────── */
+ok("IDM UI is hidden on Victoria", !featureAvailable("idm-ui", "victoria"));
+ok("IDM API is hidden on Victoria", !featureAvailable("idm-api", "victoria"));
+ok("IDM UI stays on Classic", featureAvailable("idm-ui", "classic"));
+ok("IDM API stays on Classic", featureAvailable("idm-api", "classic"));
+ok(
+  "non-IDM features are on both experiences",
+  ["search-api", "search-ui", "hec", "s2s", "acs"].every(
+    (id) => featureAvailable(id, "victoria") && featureAvailable(id, "classic")
+  )
+);
+ok("an unknown experience falls back to Classic", featureAvailable("idm-ui", "__proto__"));
+ok("an unknown feature is never available", !featureAvailable("nope", "classic"));
+ok(
+  "Victoria's feature list drops both IDM entries",
+  featuresForExperience("victoria").length === featuresForExperience("classic").length - 2 &&
+    !featuresForExperience("victoria").some((f) => f.id.startsWith("idm-"))
+);
 
 /* ── report ─────────────────────────────────────────────────────── */
 console.log(`\n${pass} passed, ${failures.length} failed\n`);

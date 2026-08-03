@@ -55,7 +55,11 @@ export const EXPERIENCES = {
 
 // IP allow list feature categories. Endpoint shape is identical across
 // Victoria and Classic — experience is carried on the profile because other
-// ACS surfaces (apps, indexes) do branch on it.
+// ACS surfaces (apps, indexes) do branch on it, and because the Inputs Data
+// Manager only exists on Classic stacks.
+//
+// `experiences` names the experiences a feature exists on. Omitting it means
+// "both" — only the IDM pair is restricted.
 export const FEATURES = [
   {
     id: "search-api",
@@ -92,6 +96,7 @@ export const FEATURES = [
     label: "IDM UI",
     ports: "443",
     risk: "medium",
+    experiences: ["classic"],
     note:
       "Browser access to the Inputs Data Manager UI in regulated environments. " +
       "Removing your subnet blocks the IDM console.",
@@ -101,6 +106,7 @@ export const FEATURES = [
     label: "IDM API",
     ports: "8089",
     risk: "medium",
+    experiences: ["classic"],
     note:
       "API access for add-ons that send data through the IDM to Splunk Cloud. " +
       "Removing a subnet stops those add-ons.",
@@ -158,6 +164,27 @@ export function buildCurl({ envId, stack, feature, ipVersion, method, subnets })
 
 export function featureById(id) {
   return FEATURES.find((f) => f.id === id) || null;
+}
+
+/**
+ * Does this feature exist on this experience? Victoria stacks have no Inputs
+ * Data Manager, so offering its allow lists there would send the operator to
+ * an endpoint that cannot apply to their stack. An unknown experience is
+ * treated as Classic, matching the profile default.
+ */
+export function featureAvailable(featureId, experienceId) {
+  const f = featureById(featureId);
+  if (!f) return false;
+  if (!f.experiences) return true;
+  const exp = Object.prototype.hasOwnProperty.call(EXPERIENCES, experienceId)
+    ? experienceId
+    : "classic";
+  return f.experiences.includes(exp);
+}
+
+/** The features an operator may pick on the given experience, in UI order. */
+export function featuresForExperience(experienceId) {
+  return FEATURES.filter((f) => featureAvailable(f.id, experienceId));
 }
 
 /**
