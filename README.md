@@ -84,7 +84,7 @@ sam-extension/
   design/            tokens, components, living style guide, system documentation
   test/              node test suite
   tools/             dev server, mock chrome API, linter, contrast audit, packager
-CONTRIBUTING.md            working rules: design system semantics, gates, invariants
+CONTRIBUTING.md      working rules: design system semantics, gates, invariants
 ```
 
 ## Documentation
